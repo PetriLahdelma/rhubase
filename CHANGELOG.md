@@ -6,6 +6,8 @@ All notable changes to RhuBase will be documented here. The project has not publ
 
 ### Added
 
+- Illustrated assessment overview, with a full process chart and editable PDF.
+- README status badges and optional community funding links.
 - RhuBase identity and local checkout wrapper.
 - Read-only `assess` workflow for explicitly selected many-source-to-one design-system analysis.
 - Static consumer usage inventory with representative evidence and visible unsupported paths.

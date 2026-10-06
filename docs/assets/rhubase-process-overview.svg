@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="556" viewBox="0 0 960 556" role="img" aria-labelledby="title desc">
+  <title id="title">From many systems to a shared review</title>
+  <desc id="desc">Read each column from top to bottom. Choose the app, source systems and target reference; inventory supported usages; compare documented options; group related decisions; surface gaps; prepare a draft report. Your team decides what happens next. RhuBase does not change application code.</desc>
+  <rect width="960" height="556" rx="12" fill="#FAF9F5"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#111618">
+    <text x="32" y="51" font-size="28" font-weight="700">From many systems to a shared review</text>
+    <text x="32" y="82" font-size="18" fill="#4D6066">One app. Explicit source systems. One target reference.</text>
+    <path d="M32 108H928" stroke="#D5DCD8"/>
+
+    <text x="32" y="147" font-size="15" font-weight="700" fill="#4D6066" letter-spacing="1">UNDERSTAND</text>
+    <text x="340" y="147" font-size="15" font-weight="700" fill="#4D6066" letter-spacing="1">COMPARE</text>
+    <text x="648" y="147" font-size="15" font-weight="700" fill="#4D6066" letter-spacing="1">PREPARE</text>
+    <g fill="#FFFFFF" stroke="#D5DCD8">
+      <rect x="32" y="166" width="280" height="288" rx="8"/>
+      <rect x="340" y="166" width="280" height="288" rx="8"/>
+      <rect x="648" y="166" width="280" height="288" rx="8"/>
+    </g>
+    <g fill="none" stroke="#4D6066" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M316 310H334m-5-5 5 5-5 5"/>
+      <path d="M624 310H642m-5-5 5 5-5 5"/>
+    </g>
+
+    <g font-size="15" font-weight="700" fill="#C92D43">
+      <text x="52" y="198">01</text><text x="52" y="344">02</text>
+      <text x="360" y="198">03</text><text x="360" y="344">04</text>
+      <text x="668" y="198">05</text><text x="668" y="344">06</text>
+    </g>
+    <g font-size="21" font-weight="700">
+      <text x="52" y="230">Choose your systems</text>
+      <text x="52" y="376">See what is in use</text>
+      <text x="360" y="230">Compare the options</text>
+      <text x="360" y="376">Group similar decisions</text>
+      <text x="668" y="230">Highlight open questions</text>
+      <text x="668" y="376">Prepare the review</text>
+    </g>
+    <g font-size="17" fill="#4D6066">
+      <text x="52" y="260">Select the app, its sources,</text>
+      <text x="52" y="284">and a shared destination.</text>
+      <text x="52" y="406">Find supported components</text>
+      <text x="52" y="430">and their source locations.</text>
+      <text x="360" y="260">Inspect differences and</text>
+      <text x="360" y="284">documented replacements.</text>
+      <text x="360" y="406">Bring related usage patterns</text>
+      <text x="360" y="430">together for review.</text>
+      <text x="668" y="260">Keep gaps, uncertain choices,</text>
+      <text x="668" y="284">and candidate owners visible.</text>
+      <text x="668" y="406">Produce a draft report with</text>
+      <text x="668" y="430">evidence and next steps.</text>
+    </g>
+    <g stroke="#E6EAE6"><path d="M52 308H292"/><path d="M360 308H600"/><path d="M668 308H908"/></g>
+    <circle cx="41" cy="494" r="7" fill="#5C861A"/>
+    <text x="60" y="500" font-size="20" font-weight="700">Your team decides what happens next.</text>
+    <text x="32" y="530" font-size="17" fill="#4D6066">Read-only assessment. Findings need human review. No application changes.</text>
+  </g>
+</svg>
