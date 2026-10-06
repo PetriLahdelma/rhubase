@@ -2,6 +2,10 @@
 
 RhuBase uses a Rust coordinator around local Node/TypeScript analysis. The current product surface has two read-only commands: `assess` and `infer`.
 
+[![Six stages from selecting source systems to a draft assessment and human review.](assets/rhubase-process-overview.svg)](assets/rhubase-process.svg)
+
+This is the user's review journey, not the internal execution order. The shared foundation is a comparison reference; the workflow ends with findings for people to review. [Explore the full chart](assets/rhubase-process.svg) or [download the editable PDF](assets/rhubase-process.pdf).
+
 ## Assessment flow
 
 1. **Inventory the consumer.** RhuBase admits bounded JavaScript, TypeScript, style, manifest, lockfile, CI identity, and CODEOWNERS metadata. Sensitive and generated paths are excluded. Repository scripts and source modules are never executed.

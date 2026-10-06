@@ -6,7 +6,11 @@
 </p>
 
 [![Local checks](https://github.com/PetriLahdelma/rhubase/actions/workflows/ci.yml/badge.svg)](https://github.com/PetriLahdelma/rhubase/actions/workflows/ci.yml)
-[MIT licensed](LICENSE) · [Get started](docs/getting-started.md) · [Use cases](docs/use-cases.md) · [Contribute](CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2D734D)](LICENSE)
+[![Status: alpha](https://img.shields.io/badge/status-alpha-B65C22)](docs/validation.md)
+[![Platform: macOS](https://img.shields.io/badge/platform-macOS-555555?logo=apple&logoColor=white)](docs/getting-started.md)
+
+[Get started](docs/getting-started.md) · [Use cases](docs/use-cases.md) · [Contribute](CONTRIBUTING.md) · [Discussions](https://github.com/PetriLahdelma/rhubase/discussions)
 
 RhuBase is an open-source, local-first tool for understanding design-system migrations and consolidations. It inventories supported component usage in a consumer repository, compares explicitly selected source systems with one target, and produces a reviewable decision report.
 
@@ -21,6 +25,14 @@ RhuBase is an alpha. Its supported workflows are read-only: it does not edit app
 - **Fail-visible analysis:** keep wrappers, dynamic access, spreads, style side effects, unsupported CODEOWNERS patterns, and other blind spots in the report.
 
 Every assessment is `draft-review`, every decision remains `needs-review`, and every artifact is non-executable.
+
+## From many systems to a shared review
+
+[![RhuBase assessment: choose systems, inventory supported usages, compare documented options, group decisions, surface open questions, and prepare a draft for human review.](docs/assets/rhubase-process-overview.svg)](docs/assets/rhubase-process.svg)
+
+Read each column from top to bottom. Select your app, its source systems, and a target reference; RhuBase gathers evidence and prepares a draft. Your team decides which changes to pursue.
+
+[Full process chart](docs/assets/rhubase-process.svg) · [Editable PDF](docs/assets/rhubase-process.pdf) · [How it works](docs/how-it-works.md)
 
 ## Install from GitHub
 
@@ -104,6 +116,12 @@ See [validation status](docs/validation.md) for the failed holdouts, the passing
 RhuBase is early, and thoughtful issue reports are more valuable than hype. Bring a small reproducible fixture, explain the expected result, and include the report’s visible gaps. Please read [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), and the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 Security reports should follow [SECURITY.md](SECURITY.md).
+
+## Support RhuBase
+
+RhuBase is free and open source. If you find it useful, optional donations help support its development. Bug reports, useful fixtures, documentation, and sharing the project are welcome contributions too.
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?logo=buymeacoffee&logoColor=000000)](https://buymeacoffee.com/petrilahdey)
 
 ## License
 
