@@ -1,0 +1,16 @@
+[package]
+name = "ctrl-shift"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+license = "MIT"
+description = "RhuBase local read-only design-system assessment coordinator"
+repository = "https://github.com/PetriLahdelma/rhubase"
+
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sha2 = "0.11.0"
+ctrlc = { version = "3.5.2", features = ["termination"] }
+nix = { version = "0.31.3", default-features = false, features = ["process", "signal"] }

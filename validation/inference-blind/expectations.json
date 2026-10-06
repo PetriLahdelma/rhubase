@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "thresholds": {
+    "supportedFactPrecision": 0.99,
+    "supportedFactRecall": 0.95,
+    "evidenceAndTargetValidity": 1,
+    "requiredAbstentions": 1,
+    "documentedMappingRecall": 0.8,
+    "noChangePassRate": 1,
+    "unsafeExecutableProposals": 0
+  },
+  "cases": [
+    {
+      "id": "export-add-remove",
+      "class": "supported",
+      "facts": [
+        { "kind": "export-removed", "export": "Retired" },
+        { "kind": "export-added", "export": "Introduced" }
+      ],
+      "coverage": { "fromExports": ["Stable", "Retired"], "toExports": ["Stable", "Introduced"] }
+    },
+    {
+      "id": "local-reexport-alias-nochange",
+      "class": "supported-nochange",
+      "facts": [],
+      "coverage": { "fromExports": ["PublicWidget"], "toExports": ["PublicWidget"], "fromProps": ["PublicWidget/label"], "toProps": ["PublicWidget/label"] }
+    },
+    {
+      "id": "interface-inheritance-added-prop",
+      "class": "supported",
+      "facts": [
+        { "kind": "prop-added", "export": "Widget", "prop": "enabled", "after": { "contains": ["boolean"], "required": true } }
+      ],
+      "coverage": { "fromProps": ["Widget/title", "Widget/count"], "toProps": ["Widget/title", "Widget/count", "Widget/enabled"] }
+    },
+    {
+      "id": "required-undefined-to-optional",
+      "class": "supported",
+      "facts": [
+        { "kind": "prop-requiredness-changed", "export": "Input", "prop": "value", "before": { "required": true }, "after": { "required": false } }
+      ]
+    },
+    {
+      "id": "callback-signature-change",
+      "class": "supported",
+      "facts": [
+        { "kind": "prop-type-changed", "export": "Editor", "prop": "onCommit", "before": { "contains": ["string", "void"] }, "after": { "contains": ["string", "Event", "boolean"] } }
+      ]
+    },
+    {
+      "id": "literal-narrow-and-expand",
+      "class": "supported",
+      "facts": [
+        { "kind": "prop-literals-changed", "export": "Badge", "prop": "tone", "before": { "literals": ["danger", "info", "neutral"] }, "after": { "literals": ["danger", "neutral"] } },
+        { "kind": "prop-literals-changed", "export": "Badge", "prop": "size", "before": { "literals": ["md", "sm"] }, "after": { "literals": ["lg", "md", "sm"] } }
+      ]
+    },
+    {
+      "id": "documented-literal-default-change",
+      "class": "supported",
+      "facts": [
+        { "kind": "prop-default-changed", "export": "Avatar", "prop": "size", "before": { "exact": "sm" }, "after": { "exact": "md" } }
+      ],
+      "coverage": { "fromDocumentation": ["index.d.ts"], "toDocumentation": ["index.d.ts"] }
+    },
+    {
+      "id": "same-value-token-ambiguity",
+      "class": "supported-abstention",
+      "facts": [
+        { "kind": "token-removed", "token": "brand.primary" },
+        { "kind": "token-removed", "token": "surface.base" },
+        { "kind": "token-added", "token": "content.inverse" },
+        { "kind": "token-added", "token": "canvas.default" }
+      ],
+      "abstention": { "forbidBasis": ["documentation-explicit"], "reason": "equal token values without directional documentation cannot establish a rename" },
+      "coverage": { "fromTokens": ["brand.primary", "surface.base"], "toTokens": ["content.inverse", "canvas.default"] }
+    },
+    {
+      "id": "documented-token-rename",
+      "class": "supported-documented-mapping",
+      "facts": [
+        { "kind": "token-removed", "token": "color.action" },
+        { "kind": "token-added", "token": "color.interactive" }
+      ],
+      "proposals": [
+        { "kind": "token-rename", "source": { "token": "color.action" }, "target": { "token": "color.interactive" }, "basis": "documentation-explicit" }
+      ],
+      "coverage": { "fromTokens": ["color.action"], "toTokens": ["color.interactive"], "toDocumentation": ["MIGRATION.md"] }
+    },
+    {
+      "id": "documented-component-and-prop-rename",
+      "class": "supported-documented-mapping",
+      "facts": [
+        { "kind": "export-removed", "export": "LegacyButton" },
+        { "kind": "export-added", "export": "ActionButton" }
+      ],
+      "proposals": [
+        { "kind": "component-rename", "source": { "export": "LegacyButton" }, "target": { "export": "ActionButton" }, "basis": "documentation-explicit" },
+        { "kind": "prop-rename", "source": { "export": "LegacyButton", "prop": "tone" }, "target": { "export": "ActionButton", "prop": "emphasis" }, "basis": "documentation-explicit" }
+      ],
+      "coverage": { "toDocumentation": ["docs/migration.md"] }
+    },
+    {
+      "id": "multiple-plausible-replacements",
+      "class": "supported-abstention",
+      "facts": [
+        { "kind": "export-removed", "export": "Card" },
+        { "kind": "export-added", "export": "Panel" },
+        { "kind": "export-added", "export": "Surface" }
+      ],
+      "abstention": { "forbidBasis": ["documentation-explicit"], "requireUnresolvedReason": "ambiguous|multiple|candidate", "reason": "two equally shaped targets have no directional evidence" }
+    },
+    {
+      "id": "documented-semantic-split",
+      "class": "supported-documented-mapping",
+      "facts": [
+        { "kind": "export-removed", "export": "Control" },
+        { "kind": "export-added", "export": "LinkControl" },
+        { "kind": "export-added", "export": "ToggleControl" }
+      ],
+      "proposals": [
+        { "kind": "component-split", "source": { "export": "Control" }, "targets": [{ "export": "LinkControl" }, { "export": "ToggleControl" }], "basis": "documentation-explicit" }
+      ],
+      "coverage": { "toDocumentation": ["MIGRATION-v2.md"] }
+    },
+    {
+      "id": "removed-without-target",
+      "class": "supported-abstention",
+      "facts": [{ "kind": "export-removed", "export": "DeprecatedWidget" }],
+      "abstention": { "forbidProposalSource": { "export": "DeprecatedWidget" }, "requireUnresolvedReason": "without replacement|no replacement|removed|target", "reason": "documentation explicitly says no replacement" }
+    },
+    {
+      "id": "contradictory-mapping-docs",
+      "class": "supported-abstention",
+      "facts": [
+        { "kind": "export-removed", "export": "LegacyNotice" },
+        { "kind": "export-added", "export": "InlineNotice" },
+        { "kind": "export-added", "export": "BannerNotice" }
+      ],
+      "abstention": { "forbidBasis": ["documentation-explicit"], "requireUnresolvedReason": "contradict|conflict|ambiguous", "reason": "documents point to different targets" },
+      "coverage": { "toDocumentation": ["README.md", "docs/migration.md"] }
+    },
+    {
+      "id": "unsupported-external-base",
+      "class": "unsupported-retained",
+      "facts": [],
+      "coverage": { "fromUnsupportedProps": ["Widget"], "toUnsupportedProps": ["Widget"] },
+      "abstention": { "forbidProposalSource": { "export": "Widget" }, "requireUnresolvedReason": "external|unsupported|unresolved", "reason": "external inherited surface cannot be normalized completely" }
+    },
+    {
+      "id": "missing-declared-entrypoint",
+      "class": "unsupported-error",
+      "expectedError": "entrypoint|missing\\.d\\.ts|not found|declared"
+    },
+    {
+      "id": "union-reordering-nochange",
+      "class": "supported-nochange",
+      "facts": []
+    },
+    {
+      "id": "optional-undefined-nochange",
+      "class": "supported-nochange",
+      "facts": []
+    },
+    {
+      "id": "parentheses-alias-refactor-nochange",
+      "class": "supported-nochange",
+      "facts": []
+    },
+    {
+      "id": "token-value-and-type-change",
+      "class": "supported",
+      "facts": [
+        { "kind": "token-value-changed", "token": "space.small", "before": { "exact": "4px" }, "after": { "exact": "6px" } },
+        { "kind": "token-value-changed", "token": "motion.quick", "before": { "exact": "100ms" }, "after": { "exact": 100 } },
+        { "kind": "token-type-changed", "token": "motion.quick", "before": { "exact": "duration" }, "after": { "exact": "number" } }
+      ],
+      "coverage": { "fromTokens": ["space.small", "motion.quick"], "toTokens": ["space.small", "motion.quick"] }
+    }
+  ]
+}

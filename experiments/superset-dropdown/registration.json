@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "caseId": "superset-dropdown-13002",
+  "status": "exploratory-source-only",
+  "registeredBeforeAgentRun": true,
+  "sourceUsages": [
+    {
+      "file": "src/dashboard/components/menu/PopoverDropdown.jsx",
+      "component": "DropdownButton",
+      "module": "react-bootstrap",
+      "count": 1
+    },
+    {
+      "file": "src/explore/components/DisplayQueryButton.jsx",
+      "component": "DropdownButton",
+      "module": "react-bootstrap",
+      "count": 1
+    }
+  ],
+  "contextFiles": [
+    "src/dashboard/components/menu/WithPopoverMenu.jsx"
+  ],
+  "evaluations": [
+    "source parses as JSX/TSX",
+    "both target Dropdown usages resolve to src/common/components",
+    "no selected Bootstrap DropdownButton import or JSX remains",
+    "menu descendants, keys, conditions and handlers preserved inside overlay",
+    "native type=button triggers preserve title content and icon-only trigger has a label",
+    "click triggering and right alignment explicit",
+    "controlled visibility bindings and close-on-menu-click behavior retained",
+    "portal containment addressed with getPopupContainer",
+    "unrelated focus lifecycle code preserved",
+    "only allowed source files changed and license headers retained"
+  ],
+  "agent": {
+    "backend": "locally installed Claude CLI",
+    "model": "configured default; record actual response metadata",
+    "budgetUsd": 3,
+    "wallClockLimitSeconds": 180,
+    "tools": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep"
+    ],
+    "networkAndShellTools": false,
+    "repetitions": 1
+  },
+  "limitations": [
+    "No application dependencies, typecheck, browser or full test suite",
+    "A restricted source-editing baseline, not the full-capability DIY campaign baseline",
+    "Historical change inspected during case selection; public training exposure possible",
+    "Evaluator authored in same session; no independent maintainer review",
+    "One selected migration slice is not a representative benchmark",
+    "No comparator-generated Shift patch in this slice: Shift provides discovery and a review route"
+  ],
+  "taskSha256": "6fab649c42746356a79b0c83af8c040e377c92e1f532a77bdabda2ec103f0b94",
+  "manifestSha256": "c644cec49ad0b24be03de06066849fd3ff99a9190cc95f083c5fb52b7eb34fa6"
+}

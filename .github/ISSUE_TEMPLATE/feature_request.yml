@@ -1,0 +1,25 @@
+name: Use case or feature idea
+description: Explain a design-system job that RhuBase could make easier.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: job
+    attributes:
+      label: What are you trying to do?
+      description: Describe the application or design-system decision you need to make.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: How do you handle it today?
+      description: Existing tools, workarounds, or points where the work gets stuck.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What would a useful result look like?
+      description: An example is more helpful than a long feature list.
+    validations:
+      required: true

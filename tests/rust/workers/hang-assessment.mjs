@@ -1,0 +1,10 @@
+import { spawn } from 'node:child_process';
+import * as fs from 'node:fs/promises';
+import path from 'node:path';
+let text = '';
+for await (const chunk of process.stdin) text += chunk;
+const request = JSON.parse(text);
+const repo = await fs.realpath(request.params.repo);
+const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
+await fs.writeFile(path.join(path.dirname(repo), `assessment-hang-${path.basename(repo)}.json`), JSON.stringify({ worker: process.pid, child: child.pid }) + '\n', { flag: 'wx' });
+setInterval(() => {}, 1000);

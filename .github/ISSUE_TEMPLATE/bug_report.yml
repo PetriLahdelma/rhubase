@@ -1,0 +1,39 @@
+name: Bug report
+description: Report an incorrect observation, missing usage, crash, or confusing result.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping RhuBase improve. Please use a small synthetic example and remove private source, credentials, and personal paths. For a vulnerability, use private reporting under the repository's Security tab.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Explain the observed result and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include the command, small source/target snippets, and the relevant report excerpt. A tiny public fixture is ideal.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node version, Rust version, and RhuBase commit or version.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where did it happen?
+      options:
+        - Consumer assessment
+        - Package inference
+        - Installation or CLI
+        - Report or documentation
+        - Other

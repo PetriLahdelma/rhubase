@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "study": "shift-inference-blind-v1",
+  "cases": [
+    {
+      "id": "export-add-remove",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/exports\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Stable(props: { id: string }): unknown;\nexport declare function Retired(props: { old: boolean }): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/exports\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Stable(props: { id: string }): unknown;\nexport declare function Introduced(props: { fresh: boolean }): unknown;\n"
+      }
+    },
+    {
+      "id": "local-reexport-alias-nochange",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/reexport\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export { InternalWidget as PublicWidget } from './internal';\n",
+        "from/internal.d.ts": "export interface WidgetProps { label: string; }\nexport declare function InternalWidget(props: WidgetProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/reexport\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export { RenamedInternal as PublicWidget } from './implementation';\n",
+        "to/implementation.d.ts": "export type PublicProps = { label: string };\nexport declare const RenamedInternal: (props: PublicProps) => unknown;\n"
+      }
+    },
+    {
+      "id": "interface-inheritance-added-prop",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/inherit\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "interface BaseProps { title: string; }\nexport interface WidgetProps extends BaseProps { count?: number; }\nexport declare function Widget(props: WidgetProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/inherit\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "interface BaseProps { title: string; enabled: boolean; }\nexport interface WidgetProps extends BaseProps { count?: number; }\nexport declare function Widget(props: WidgetProps): unknown;\n"
+      }
+    },
+    {
+      "id": "required-undefined-to-optional",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/requiredness\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface InputProps { value: string | undefined; }\nexport declare function Input(props: InputProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/requiredness\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface InputProps { value?: string; }\nexport declare function Input(props: InputProps): unknown;\n"
+      }
+    },
+    {
+      "id": "callback-signature-change",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/callback\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export type EditorProps = { onCommit: (value: string) => void };\nexport declare const Editor: (props: EditorProps) => unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/callback\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export type EditorProps = { onCommit: (value: string, event: Event) => boolean };\nexport declare const Editor: (props: EditorProps) => unknown;\n"
+      }
+    },
+    {
+      "id": "literal-narrow-and-expand",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/literals\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface BadgeProps { tone: 'neutral' | 'info' | 'danger'; size: 'sm' | 'md'; }\nexport declare function Badge(props: BadgeProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/literals\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface BadgeProps { tone: 'neutral' | 'danger'; size: 'sm' | 'md' | 'lg'; }\nexport declare function Badge(props: BadgeProps): unknown;\n"
+      }
+    },
+    {
+      "id": "documented-literal-default-change",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/defaults\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface AvatarProps { /** @default \"sm\" */ size?: 'sm' | 'md'; }\nexport declare function Avatar(props: AvatarProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/defaults\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface AvatarProps { /** @default \"md\" */ size?: 'sm' | 'md'; }\nexport declare function Avatar(props: AvatarProps): unknown;\n"
+      }
+    },
+    {
+      "id": "same-value-token-ambiguity",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/token-ambiguous\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export {};\n",
+        "from/tokens.json": "{\"brand\":{\"primary\":{\"$type\":\"color\",\"$value\":\"#ffffff\"}},\"surface\":{\"base\":{\"$type\":\"color\",\"$value\":\"#000000\"}}}\n",
+        "to/package.json": "{\"name\":\"@blind/token-ambiguous\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export {};\n",
+        "to/tokens.json": "{\"content\":{\"inverse\":{\"$type\":\"color\",\"$value\":\"#ffffff\"}},\"canvas\":{\"default\":{\"$type\":\"color\",\"$value\":\"#000000\"}}}\n"
+      }
+    },
+    {
+      "id": "documented-token-rename",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/token-doc\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export {};\n",
+        "from/tokens/action.tokens.json": "{\"color\":{\"action\":{\"$type\":\"color\",\"$value\":\"#1455cc\"}}}\n",
+        "from/README.md": "# Tokens\nUse `color.action` for interactive elements.\n",
+        "to/package.json": "{\"name\":\"@blind/token-doc\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export {};\n",
+        "to/tokens/action.tokens.json": "{\"color\":{\"interactive\":{\"$type\":\"color\",\"$value\":\"#1455cc\"}}}\n",
+        "to/MIGRATION.md": "# Version 2\nThe token `color.action` was renamed to `color.interactive`.\n"
+      }
+    },
+    {
+      "id": "documented-component-and-prop-rename",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/documented\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface LegacyButtonProps { tone?: 'default' | 'strong'; label: string; }\nexport declare function LegacyButton(props: LegacyButtonProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/documented\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface ActionButtonProps { emphasis?: 'default' | 'strong'; label: string; }\nexport declare function ActionButton(props: ActionButtonProps): unknown;\n",
+        "to/docs/migration.md": "# Button migration\n`LegacyButton` is renamed to `ActionButton`. Its `tone` prop is renamed to `emphasis`.\n"
+      }
+    },
+    {
+      "id": "multiple-plausible-replacements",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/ambiguous-components\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface CardProps { heading: string; children?: unknown; }\nexport declare function Card(props: CardProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/ambiguous-components\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface PanelProps { heading: string; children?: unknown; }\nexport interface SurfaceProps { heading: string; children?: unknown; }\nexport declare function Panel(props: PanelProps): unknown;\nexport declare function Surface(props: SurfaceProps): unknown;\n"
+      }
+    },
+    {
+      "id": "documented-semantic-split",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/split\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface ControlProps { href?: string; selected?: boolean; label: string; }\nexport declare function Control(props: ControlProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/split\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface LinkControlProps { href: string; label: string; }\nexport interface ToggleControlProps { selected: boolean; label: string; }\nexport declare function LinkControl(props: LinkControlProps): unknown;\nexport declare function ToggleControl(props: ToggleControlProps): unknown;\n",
+        "to/MIGRATION-v2.md": "# Control split\n`Control` is split: usages with `href` move to `LinkControl`; selectable usages move to `ToggleControl`.\n"
+      }
+    },
+    {
+      "id": "removed-without-target",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/missing-target\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function DeprecatedWidget(props: { legacy: true }): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/missing-target\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export {};\n",
+        "to/CHANGELOG.md": "# 2.0\n`DeprecatedWidget` was removed without replacement.\n"
+      }
+    },
+    {
+      "id": "contradictory-mapping-docs",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/contradiction\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function LegacyNotice(props: { text: string }): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/contradiction\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function InlineNotice(props: { text: string }): unknown;\nexport declare function BannerNotice(props: { text: string }): unknown;\n",
+        "to/README.md": "Replace `LegacyNotice` with `InlineNotice`.\n",
+        "to/docs/migration.md": "Replace `LegacyNotice` with `BannerNotice`.\n"
+      }
+    },
+    {
+      "id": "unsupported-external-base",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/external\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "import type { ExternalProps } from 'external-package';\nexport interface WidgetProps extends ExternalProps { local: string; }\nexport declare function Widget(props: WidgetProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/external\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "import type { ExternalProps } from 'external-package';\nexport interface WidgetProps extends ExternalProps { local: string; added?: number; }\nexport declare function Widget(props: WidgetProps): unknown;\n"
+      }
+    },
+    {
+      "id": "missing-declared-entrypoint",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/malformed\",\"version\":\"1.0.0\",\"types\":\"missing.d.ts\"}\n",
+        "from/index.d.ts": "export declare function ShouldNotFallback(props: {}): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/malformed\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function ShouldNotFallback(props: {}): unknown;\n"
+      }
+    },
+    {
+      "id": "union-reordering-nochange",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/union-order\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Choice(props: { value: 'a' | 'b' | 'c' }): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/union-order\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Choice(props: { value: 'c' | 'a' | 'b' }): unknown;\n"
+      }
+    },
+    {
+      "id": "optional-undefined-nochange",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/optional\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Field(props: { help?: string }): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/optional\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Field(props: { help?: string | undefined }): unknown;\n"
+      }
+    },
+    {
+      "id": "parentheses-alias-refactor-nochange",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/alias-refactor\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "type Value = (string | number);\nexport declare function Meter(props: { value: Value }): unknown;\n",
+        "to/package.json": "{\"name\":\"@blind/alias-refactor\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "type Scalar = number | string;\ntype PublicValue = Scalar;\nexport declare function Meter(props: { value: PublicValue }): unknown;\n"
+      }
+    },
+    {
+      "id": "token-value-and-type-change",
+      "files": {
+        "from/package.json": "{\"name\":\"@blind/token-diff\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export {};\n",
+        "from/tokens/core.json": "{\"space\":{\"small\":{\"$type\":\"dimension\",\"$value\":\"4px\"}},\"motion\":{\"quick\":{\"$type\":\"duration\",\"$value\":\"100ms\"}}}\n",
+        "to/package.json": "{\"name\":\"@blind/token-diff\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export {};\n",
+        "to/tokens/core.json": "{\"space\":{\"small\":{\"$type\":\"dimension\",\"$value\":\"6px\"}},\"motion\":{\"quick\":{\"$type\":\"number\",\"$value\":100}}}\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "id": "account-consolidation",
+  "kind": "controlled-fixture",
+  "consumer": "consumer",
+  "sources": [
+    "commerce",
+    "admin"
+  ],
+  "target": "foundation",
+  "inventory": {
+    "kind": "manual",
+    "limitations": "Seven registered fixture sites; completeness is not inferred from discovery."
+  },
+  "decisions": [
+    {
+      "id": "provider",
+      "invariants": [
+        "spacing remains 8",
+        "focus ring intentionally becomes foundation"
+      ],
+      "rationale": "Target theme is approved for this fixture. Both source providers have the same spacing.",
+      "status": "approved",
+      "owner": "fixture-author (not a customer approval)"
+    },
+    {
+      "id": "submit",
+      "invariants": [
+        "type submit",
+        "label retained",
+        "disabled false"
+      ],
+      "rationale": "Commerce defaults to submit; target defaults to button, so set type explicitly.",
+      "status": "approved",
+      "owner": "fixture-author (not a customer approval)"
+    },
+    {
+      "id": "navigation",
+      "invariants": [
+        "href retained",
+        "link role",
+        "new tab allowed"
+      ],
+      "rationale": "Literal navigation maps to a dedicated link.",
+      "status": "approved",
+      "owner": "fixture-author (not a customer approval)"
+    },
+    {
+      "id": "toggle",
+      "invariants": [
+        "pressed true",
+        "type button"
+      ],
+      "rationale": "Explicit selected state maps to a dedicated toggle.",
+      "status": "approved",
+      "owner": "fixture-author (not a customer approval)"
+    }
+  ],
+  "units": [
+    {
+      "id": "provider",
+      "summary": "Target theme is approved for this fixture. Both source providers have the same spacing.",
+      "decisions": [
+        "provider"
+      ],
+      "requires": [],
+      "edits": [
+        {
+          "file": "src/theme.mjs",
+          "before": "import { theme as commerce } from '../systems/commerce.mjs';\nimport { theme as admin } from '../systems/admin.mjs';\nexport const theme = { ...commerce, ...admin };\n",
+          "after": "import { theme } from '../systems/foundation.mjs';\nexport { theme };\n",
+          "beforeSha256": "9311f334105242574ea49a82483b1be05f4f044f7c8a4e5eee7bd95620f9b007",
+          "afterSha256": "92c9b40c3fc7b73be808254219321abd7229c31048d37d84a37ade2213f5bf1a"
+        }
+      ]
+    },
+    {
+      "id": "submit",
+      "summary": "Commerce defaults to submit; target defaults to button, so set type explicitly.",
+      "decisions": [
+        "submit"
+      ],
+      "requires": [
+        "provider"
+      ],
+      "edits": [
+        {
+          "file": "src/form.mjs",
+          "before": "import { Button } from '../systems/commerce.mjs';\nexport const submit = () => Button({ label: 'Save' });\n",
+          "after": "import { Button } from '../systems/foundation.mjs';\nexport const submit = () => Button({ label: 'Save', type: 'submit' });\n",
+          "beforeSha256": "613b2c0f91d87ac1edc3260196df5ab0359512b1cac4e60b60beffb49a536a4f",
+          "afterSha256": "bf81932e029395fc0a3dc270f1eca10dd75271c3ac8c6959054f2fcd2f57a3a6"
+        }
+      ]
+    },
+    {
+      "id": "navigation",
+      "summary": "Literal navigation maps to a dedicated link.",
+      "decisions": [
+        "navigation"
+      ],
+      "requires": [
+        "provider"
+      ],
+      "edits": [
+        {
+          "file": "src/navigation.mjs",
+          "before": "import { Button } from '../systems/admin.mjs';\nexport const navigation = () => Button({ label: 'Details', variant: 'contentLink', href: '/profile' });\n",
+          "after": "import { LinkButton } from '../systems/foundation.mjs';\nexport const navigation = () => LinkButton({ label: 'Details', href: '/profile' });\n",
+          "beforeSha256": "f212595550fbe6cc5cbcd06020911ddf26f70b0fe39d270f7e01ff478443c2a1",
+          "afterSha256": "e2d95d54c54a55ff7bf429f11a17bb8f3f17570bcf75dcb864d1cc72665c89d8"
+        }
+      ]
+    },
+    {
+      "id": "toggle",
+      "summary": "Explicit selected state maps to a dedicated toggle.",
+      "decisions": [
+        "toggle"
+      ],
+      "requires": [
+        "provider"
+      ],
+      "edits": [
+        {
+          "file": "src/toggle.mjs",
+          "before": "import { Button } from '../systems/admin.mjs';\nexport const toggle = () => Button({ label: 'Pinned', variant: 'toggle', selected: true });\n",
+          "after": "import { ToggleButton } from '../systems/foundation.mjs';\nexport const toggle = () => ToggleButton({ label: 'Pinned', pressed: true });\n",
+          "beforeSha256": "6350171af926f973b0e9ee4d506830750efdcbd886676bdd820a00bacc0ba3b1",
+          "afterSha256": "907fa1f852ca70b4627631555b2996f833f9ad90fc406df0b0f31ff23d236214"
+        }
+      ]
+    }
+  ],
+  "usages": [
+    {
+      "id": "commerce-provider",
+      "source": "commerce",
+      "file": "src/theme.mjs",
+      "anchor": "import { theme as commerce }",
+      "disposition": "mapped",
+      "unit": "provider"
+    },
+    {
+      "id": "admin-provider",
+      "source": "admin",
+      "file": "src/theme.mjs",
+      "anchor": "import { theme as admin }",
+      "disposition": "mapped",
+      "unit": "provider"
+    },
+    {
+      "id": "submit-button",
+      "source": "commerce",
+      "file": "src/form.mjs",
+      "anchor": "export const submit",
+      "disposition": "mapped",
+      "unit": "submit"
+    },
+    {
+      "id": "navigation-button",
+      "source": "admin",
+      "file": "src/navigation.mjs",
+      "anchor": "export const navigation",
+      "disposition": "mapped",
+      "unit": "navigation"
+    },
+    {
+      "id": "toggle-button",
+      "source": "admin",
+      "file": "src/toggle.mjs",
+      "anchor": "export const toggle",
+      "disposition": "mapped",
+      "unit": "toggle"
+    },
+    {
+      "id": "loading-button",
+      "source": "commerce",
+      "file": "src/loading.mjs",
+      "anchor": "export const loading",
+      "disposition": "target-gap",
+      "reason": "Target has no approved loading/announcement behavior",
+      "owner": "Target system owner"
+    },
+    {
+      "id": "dynamic-button",
+      "source": "admin",
+      "file": "src/dynamic.mjs",
+      "anchor": "export const dynamic",
+      "disposition": "unsupported",
+      "reason": "Runtime props do not establish intent",
+      "owner": "Application maintainer"
+    }
+  ],
+  "requiredChecks": [
+    "behavior"
+  ],
+  "checks": [
+    {
+      "id": "behavior",
+      "description": "Six independently stated descriptor expectations",
+      "oracle": "oracles/behavior.test.mjs",
+      "sha256": "76049ed9fa76b6f15925a6f92036a6fdd5613d641802f29afbfc235f3a2ca8e1",
+      "expectedTests": 6,
+      "timeoutMs": 20000
+    }
+  ]
+}

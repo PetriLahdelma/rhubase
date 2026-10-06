@@ -1,0 +1,2 @@
+import { proxyAssessment } from './_assessment-proxy.mjs';
+await proxyAssessment((assessment) => { const unsafe = assessment.mappingGroups.find((item) => item.condition.hasSpread); const mapped = assessment.mappingGroups.find((item) => item.route === 'mapping-to-review'); unsafe.route = 'mapping-to-review'; unsafe.target = mapped.target; unsafe.candidateTargets = mapped.candidateTargets; unsafe.proposalIds = mapped.proposalIds; });

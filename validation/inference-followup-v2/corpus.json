@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "study": "shift-inference-followup-holdout-v2",
+  "label": "Post-reveal follow-up holdout; does not replace the original blind study",
+  "cases": [
+    {
+      "id": "multiline-jsdoc-defaults",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/defaults\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface ToastProps {\n  /**\n   * Placement.\n   * @default \"top\"\n   */\n  placement?: 'top' | 'bottom';\n  /** @default false */\n  persistent?: boolean;\n}\nexport declare function Toast(props: ToastProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/defaults\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface ToastProps {\n  /**\n   * Placement.\n   * @default \"bottom\"\n   */\n  placement?: 'top' | 'bottom';\n  /** @default true */\n  persistent?: boolean;\n}\nexport declare function Toast(props: ToastProps): unknown;\n"
+      }
+    },
+    {
+      "id": "markdown-component-replacement",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/component-doc\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface SharedProps { label: string; }\nexport declare function OldAction(props: SharedProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/component-doc\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface SharedProps { label: string; }\nexport declare function PrimaryAction(props: SharedProps): unknown;\n",
+        "to/docs/upgrade.md": "# Upgrade\nReplace `OldAction` with `PrimaryAction` when moving to version 2.\n"
+      }
+    },
+    {
+      "id": "markdown-prop-replacement",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/prop-doc\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface BannerProps { intent?: 'quiet' | 'loud'; text: string; }\nexport declare function Banner(props: BannerProps): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/prop-doc\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface BannerProps { emphasis?: 'quiet' | 'loud'; text: string; }\nexport declare function Banner(props: BannerProps): unknown;\n",
+        "to/MIGRATION.md": "# Banner\nOn `Banner`, replace the `intent` prop with the `emphasis` prop.\n"
+      }
+    },
+    {
+      "id": "documented-consolidation",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/consolidate\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function CompactTag(props: { text: string }): unknown;\nexport declare function StatusTag(props: { text: string }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/consolidate\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Tag(props: { text: string }): unknown;\n",
+        "to/CHANGELOG.md": "# 2.0\n`CompactTag` and `StatusTag` were consolidated into `Tag`.\n"
+      }
+    },
+    {
+      "id": "explicit-empty-target",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/empty\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function RemovedThing(props: { id: string }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/empty\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export {};\n",
+        "to/README.md": "`RemovedThing` is removed and has no replacement.\n"
+      }
+    },
+    {
+      "id": "optional-to-required-undefined",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/required\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Search(props: { query?: string }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/required\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Search(props: { query: string | undefined }): unknown;\n"
+      }
+    },
+    {
+      "id": "local-callback-event-change",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/callback\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export interface CommitEvent { source: 'keyboard' | 'pointer'; }\nexport declare function Editor(props: { onCommit: (value: string) => void }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/callback\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export interface CommitEvent { source: 'keyboard' | 'pointer'; }\nexport declare function Editor(props: { onCommit: (value: string, event: CommitEvent) => boolean }): unknown;\n"
+      }
+    },
+    {
+      "id": "union-and-parentheses-nochange",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/normalize\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Picker(props: { value: ('one' | 'two' | 'three') }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/normalize\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Picker(props: { value: 'three' | 'one' | 'two' }): unknown;\n"
+      }
+    },
+    {
+      "id": "optional-undefined-nochange-v2",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/optional\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Hint(props: { message?: string | undefined }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/optional\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Hint(props: { message?: string }): unknown;\n"
+      }
+    },
+    {
+      "id": "ambiguous-equal-shape-targets-v2",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/ambiguous\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Tile(props: { title: string }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/ambiguous\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Block(props: { title: string }): unknown;\nexport declare function Panel(props: { title: string }): unknown;\n"
+      }
+    },
+    {
+      "id": "contradictory-prop-docs",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/conflict\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Notice(props: { tone?: string }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/conflict\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function Notice(props: { emphasis?: string; intent?: string }): unknown;\n",
+        "to/README.md": "Replace the `tone` prop on `Notice` with `emphasis`.\n",
+        "to/docs/migration.md": "Replace the `tone` prop on `Notice` with `intent`.\n"
+      }
+    },
+    {
+      "id": "unsupported-mapped-generic",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/mapped\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export type Flags<T> = { [K in keyof T]?: boolean };\nexport declare function FlagList<T>(props: Flags<T>): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/mapped\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export type Flags<T> = { [K in keyof T]: boolean };\nexport declare function FlagList<T>(props: Flags<T>): unknown;\n"
+      }
+    },
+    {
+      "id": "missing-export-subpath-entrypoint",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/subpath\",\"version\":\"1.0.0\",\"exports\":{\".\":{\"types\":\"./index.d.ts\"},\"./extra\":{\"types\":\"./missing.d.ts\"}}}\n",
+        "from/index.d.ts": "export declare function Root(props: {}): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/subpath\",\"version\":\"2.0.0\",\"exports\":{\".\":{\"types\":\"./index.d.ts\"}}}\n",
+        "to/index.d.ts": "export declare function Root(props: {}): unknown;\n"
+      }
+    },
+    {
+      "id": "local-interface-inheritance-type-change",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/inherit\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "interface Base { id: string; }\ninterface Detail extends Base { amount: number; }\nexport declare function Summary(props: Detail): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/inherit\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "interface Base { id: string; }\ninterface Detail extends Base { amount: string; }\nexport declare function Summary(props: Detail): unknown;\n"
+      }
+    },
+    {
+      "id": "react-fc-props-change",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/react-fc\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "import type * as React from 'react';\nexport interface CounterProps { value: number; }\nexport declare const Counter: React.FC<CounterProps>;\n",
+        "to/package.json": "{\"name\":\"@holdout/react-fc\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "import type * as React from 'react';\nexport interface CounterProps { value: string; }\nexport declare const Counter: React.FC<CounterProps>;\n"
+      }
+    },
+    {
+      "id": "documented-semantic-split-v2",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/split\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare function Entry(props: { href?: string; expanded?: boolean }): unknown;\n",
+        "to/package.json": "{\"name\":\"@holdout/split\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare function LinkEntry(props: { href: string }): unknown;\nexport declare function DisclosureEntry(props: { expanded: boolean }): unknown;\n",
+        "to/docs/v2.md": "`Entry` was split into `LinkEntry` for links and `DisclosureEntry` for expandable controls.\n"
+      }
+    },
+    {
+      "id": "same-value-token-ambiguity-v2",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/tokens\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare const version: string;\n",
+        "from/tokens.json": "{\"text\":{\"muted\":{\"$type\":\"color\",\"$value\":\"#777777\"}},\"border\":{\"subtle\":{\"$type\":\"color\",\"$value\":\"#777777\"}}}\n",
+        "to/package.json": "{\"name\":\"@holdout/tokens\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare const version: string;\n",
+        "to/tokens.json": "{\"foreground\":{\"secondary\":{\"$type\":\"color\",\"$value\":\"#777777\"}},\"stroke\":{\"quiet\":{\"$type\":\"color\",\"$value\":\"#777777\"}}}\n"
+      }
+    },
+    {
+      "id": "composite-token-value-change",
+      "files": {
+        "from/package.json": "{\"name\":\"@holdout/composite\",\"version\":\"1.0.0\",\"types\":\"index.d.ts\"}\n",
+        "from/index.d.ts": "export declare const version: string;\n",
+        "from/tokens/shadow.json": "{\"elevation\":{\"card\":{\"$type\":\"shadow\",\"$value\":{\"color\":\"#00000033\",\"offsetX\":0,\"offsetY\":2,\"blur\":4}}}}\n",
+        "to/package.json": "{\"name\":\"@holdout/composite\",\"version\":\"2.0.0\",\"types\":\"index.d.ts\"}\n",
+        "to/index.d.ts": "export declare const version: string;\n",
+        "to/tokens/shadow.json": "{\"elevation\":{\"card\":{\"$type\":\"shadow\",\"$value\":{\"color\":\"#00000044\",\"offsetX\":0,\"offsetY\":3,\"blur\":6}}}}\n"
+      }
+    }
+  ]
+}

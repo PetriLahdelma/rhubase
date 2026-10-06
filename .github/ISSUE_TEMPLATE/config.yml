@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/PetriLahdelma/rhubase/discussions
+    about: Compare notes with other design-system practitioners.
+  - name: Report a security vulnerability privately
+    url: https://github.com/PetriLahdelma/rhubase/security/advisories/new
+    about: Keep vulnerability details and sensitive material out of public issues.

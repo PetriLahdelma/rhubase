@@ -1,0 +1,34 @@
+# Dependencies and build output
+node_modules/
+/target/
+/output/
+.DS_Store
+*.log
+*.tgz
+
+# Local runs, agent state and credentials
+.shift/
+.omx/
+.env
+.env.*
+!.env.example
+
+# Preserve private historical research locally; publish current guides instead.
+/docs/[0-9][0-9]-*.md
+/docs/archive-local/
+/experiments/results/
+/experiments/superset-dropdown/results/
+/assets/brand/rhubase-v1/
+/assets/brand/rhubase-v1.zip
+
+# Released synthetic corpora remain reproducible regression inputs.
+/validation/*
+!/validation/README.md
+!/validation/inference-blind/
+!/validation/inference-followup-v2/
+/validation/inference-blind/*
+!/validation/inference-blind/corpus.json
+!/validation/inference-blind/expectations.json
+/validation/inference-followup-v2/*
+!/validation/inference-followup-v2/corpus.json
+!/validation/inference-followup-v2/expectations.json

@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    { "module": "react-bootstrap", "exports": ["DropdownButton"] }
+  ]
+}

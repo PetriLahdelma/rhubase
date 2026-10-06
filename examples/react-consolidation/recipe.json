@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "consolidate-commerce-admin-to-foundation",
+  "rules": [
+    {
+      "id": "commerce-provider",
+      "kind": "component",
+      "from": { "module": "../systems/commerce.jsx", "export": "Provider" },
+      "to": { "module": "../systems/foundation.jsx", "export": "Provider" }
+    },
+    {
+      "id": "commerce-submit-button",
+      "kind": "component",
+      "from": { "module": "../systems/commerce.jsx", "export": "Button" },
+      "to": { "module": "../systems/foundation.jsx", "export": "Button" },
+      "props": {
+        "rename": { "onAction": "onClick" },
+        "set": { "type": "submit" }
+      }
+    },
+    {
+      "id": "admin-link-button",
+      "kind": "component",
+      "from": { "module": "../systems/admin.jsx", "export": "Button" },
+      "to": { "module": "../systems/foundation.jsx", "export": "LinkButton" },
+      "when": { "prop": "variant", "literal": "link" },
+      "props": {
+        "rename": { "onAction": "onClick" },
+        "remove": { "variant": "link" }
+      }
+    },
+    {
+      "id": "admin-toggle-button",
+      "kind": "component",
+      "from": { "module": "../systems/admin.jsx", "export": "Button" },
+      "to": { "module": "../systems/foundation.jsx", "export": "ToggleButton" },
+      "when": { "prop": "variant", "literal": "toggle" },
+      "props": {
+        "rename": { "selected": "pressed", "onChange": "onPressedChange" },
+        "remove": { "variant": "toggle" },
+        "set": { "type": "button" }
+      }
+    },
+    {
+      "id": "admin-action-button",
+      "kind": "component",
+      "from": { "module": "../systems/admin.jsx", "export": "Button" },
+      "to": { "module": "../systems/foundation.jsx", "export": "Button" },
+      "when": { "prop": "variant", "literal": "action" },
+      "props": {
+        "rename": { "onAction": "onClick" },
+        "remove": { "variant": "action" },
+        "set": { "type": "button" }
+      }
+    }
+  ]
+}

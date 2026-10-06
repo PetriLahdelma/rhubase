@@ -1,0 +1,32 @@
+{
+  "name": "rhubase",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first design-system consolidation assessment and migration decision preparation",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PetriLahdelma/rhubase.git"
+  },
+  "homepage": "https://github.com/PetriLahdelma/rhubase#readme",
+  "bugs": {
+    "url": "https://github.com/PetriLahdelma/rhubase/issues"
+  },
+  "bin": {
+    "rhubase": "bin/rhubase"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node scripts/verify.mjs --node-only",
+    "verify": "node scripts/verify.mjs",
+    "test:cli": "node scripts/test-cli.mjs",
+    "example:assess": "node scripts/example-assess.mjs",
+    "check": "node scripts/check.mjs"
+  },
+  "dependencies": {
+    "typescript": "5.9.3"
+  }
+}

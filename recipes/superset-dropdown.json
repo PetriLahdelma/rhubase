@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "superset-dropdown",
+  "rules": [
+    {
+      "id": "react-bootstrap-dropdown-button",
+      "kind": "superset-dropdown",
+      "from": { "module": "react-bootstrap", "export": "DropdownButton" },
+      "to": { "module": "src/common/components", "export": "Dropdown" }
+    }
+  ]
+}

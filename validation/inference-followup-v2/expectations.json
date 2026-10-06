@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "study": "shift-inference-followup-holdout-v2",
+  "label": "Post-reveal follow-up; does not replace the original blind result",
+  "thresholds": { "supportedFactPrecision": 0.99, "supportedFactRecall": 0.95, "evidenceAndTargetValidity": 1, "requiredAbstentions": 1, "documentedMappingRecall": 0.8, "noChangePassRate": 1, "unsafeExecutableProposals": 0 },
+  "cases": [
+    { "id": "multiline-jsdoc-defaults", "class": "supported", "facts": [
+      { "kind": "prop-default-changed", "export": "Toast", "prop": "placement", "before": { "exact": "top" }, "after": { "exact": "bottom" } },
+      { "kind": "prop-default-changed", "export": "Toast", "prop": "persistent", "before": { "exact": false }, "after": { "exact": true } }
+    ] },
+    { "id": "markdown-component-replacement", "class": "supported-documented-mapping", "facts": [
+      { "kind": "export-removed", "export": "OldAction" }, { "kind": "export-added", "export": "PrimaryAction" }
+    ], "proposals": [{ "kind": "component-rename", "source": { "export": "OldAction" }, "target": { "export": "PrimaryAction" }, "basis": "documentation-explicit" }], "coverage": { "toDocumentation": ["docs/upgrade.md"] } },
+    { "id": "markdown-prop-replacement", "class": "supported-documented-mapping", "facts": [
+      { "kind": "prop-removed", "export": "Banner", "prop": "intent" }, { "kind": "prop-added", "export": "Banner", "prop": "emphasis" }
+    ], "proposals": [{ "kind": "prop-rename", "source": { "export": "Banner", "prop": "intent" }, "target": { "export": "Banner", "prop": "emphasis" }, "basis": "documentation-explicit" }], "coverage": { "toDocumentation": ["MIGRATION.md"] } },
+    { "id": "documented-consolidation", "class": "supported-documented-mapping", "facts": [
+      { "kind": "export-removed", "export": "CompactTag" }, { "kind": "export-removed", "export": "StatusTag" }, { "kind": "export-added", "export": "Tag" }
+    ], "proposals": [
+      { "kind": "component-rename", "source": { "export": "CompactTag" }, "target": { "export": "Tag" }, "basis": "documentation-explicit" },
+      { "kind": "component-rename", "source": { "export": "StatusTag" }, "target": { "export": "Tag" }, "basis": "documentation-explicit" }
+    ], "coverage": { "toDocumentation": ["CHANGELOG.md"] } },
+    { "id": "explicit-empty-target", "class": "supported-abstention", "facts": [{ "kind": "export-removed", "export": "RemovedThing" }], "abstention": { "forbidProposalSource": { "export": "RemovedThing" }, "requireUnresolvedReason": "no replacement|without replacement|removed|target" } },
+    { "id": "optional-to-required-undefined", "class": "supported", "facts": [{ "kind": "prop-requiredness-changed", "export": "Search", "prop": "query", "before": { "required": false }, "after": { "required": true } }] },
+    { "id": "local-callback-event-change", "class": "supported", "facts": [{ "kind": "prop-type-changed", "export": "Editor", "prop": "onCommit", "before": { "contains": ["string", "void"] }, "after": { "contains": ["string", "CommitEvent", "boolean"] } }] },
+    { "id": "union-and-parentheses-nochange", "class": "supported-nochange", "facts": [] },
+    { "id": "optional-undefined-nochange-v2", "class": "supported-nochange", "facts": [] },
+    { "id": "ambiguous-equal-shape-targets-v2", "class": "supported-abstention", "facts": [
+      { "kind": "export-removed", "export": "Tile" }, { "kind": "export-added", "export": "Block" }, { "kind": "export-added", "export": "Panel" }
+    ], "abstention": { "forbidBasis": ["documentation-explicit"], "requireUnresolvedReason": "ambiguous|multiple|candidate|target" } },
+    { "id": "contradictory-prop-docs", "class": "supported-abstention", "facts": [
+      { "kind": "prop-removed", "export": "Notice", "prop": "tone" }, { "kind": "prop-added", "export": "Notice", "prop": "emphasis" }, { "kind": "prop-added", "export": "Notice", "prop": "intent" }
+    ], "abstention": { "forbidBasis": ["documentation-explicit"], "requireUnresolvedReason": "contradict|conflict|ambiguous" }, "coverage": { "toDocumentation": ["README.md", "docs/migration.md"] } },
+    { "id": "unsupported-mapped-generic", "class": "unsupported-retained", "facts": [], "coverage": { "fromUnsupportedProps": ["FlagList"], "toUnsupportedProps": ["FlagList"] }, "abstention": { "forbidProposalSource": { "export": "FlagList" }, "requireUnresolvedReason": "mapped|generic|unsupported|unresolved" } },
+    { "id": "missing-export-subpath-entrypoint", "class": "unsupported-error", "expectedError": "entrypoint|missing\\.d\\.ts|not found|declared" },
+    { "id": "local-interface-inheritance-type-change", "class": "supported", "facts": [{ "kind": "prop-type-changed", "export": "Summary", "prop": "amount", "before": { "contains": ["number"] }, "after": { "contains": ["string"] } }] },
+    { "id": "react-fc-props-change", "class": "supported", "facts": [{ "kind": "prop-type-changed", "export": "Counter", "prop": "value", "before": { "contains": ["number"] }, "after": { "contains": ["string"] } }] },
+    { "id": "documented-semantic-split-v2", "class": "supported-documented-mapping", "facts": [
+      { "kind": "export-removed", "export": "Entry" }, { "kind": "export-added", "export": "LinkEntry" }, { "kind": "export-added", "export": "DisclosureEntry" }
+    ], "proposals": [{ "kind": "component-split", "source": { "export": "Entry" }, "targets": [{ "export": "DisclosureEntry" }, { "export": "LinkEntry" }], "basis": "documentation-explicit" }], "coverage": { "toDocumentation": ["docs/v2.md"] } },
+    { "id": "same-value-token-ambiguity-v2", "class": "supported-abstention", "facts": [
+      { "kind": "token-removed", "token": "text.muted" }, { "kind": "token-removed", "token": "border.subtle" }, { "kind": "token-added", "token": "foreground.secondary" }, { "kind": "token-added", "token": "stroke.quiet" }
+    ], "abstention": { "forbidBasis": ["documentation-explicit"], "requireUnresolvedReason": "ambiguous|missing|target|candidate" }, "coverage": { "fromTokens": ["text.muted", "border.subtle"], "toTokens": ["foreground.secondary", "stroke.quiet"] } },
+    { "id": "composite-token-value-change", "class": "supported", "facts": [{ "kind": "token-value-changed", "token": "elevation.card", "before": { "contains": ["#00000033", "2", "4"] }, "after": { "contains": ["#00000044", "3", "6"] } }] }
+  ]
+}

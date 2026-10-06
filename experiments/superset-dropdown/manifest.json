@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "superset-dropdown-13002",
+  "kind": "historical-source-exploration",
+  "repository": "https://github.com/apache/superset",
+  "proposal": "https://github.com/apache/superset/issues/10254",
+  "historicalPullRequest": "https://github.com/apache/superset/pull/13002",
+  "base": "f85497e69bb37ea6847cd6640062fdc1e145037a",
+  "head": "50342531680ed0115fb63d89d3cb876bd68812ed",
+  "customerValidation": false,
+  "files": [
+    {
+      "source": "superset-frontend/src/dashboard/components/menu/PopoverDropdown.jsx",
+      "local": "input/src/dashboard/components/menu/PopoverDropdown.jsx",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/superset-frontend/src/dashboard/components/menu/PopoverDropdown.jsx",
+      "sha256": "fbfdbd3706067d4061ca3a3cbbd959460f493bce7d59e0abd0a5465cc4860696",
+      "bytes": 3233
+    },
+    {
+      "source": "superset-frontend/src/dashboard/components/menu/WithPopoverMenu.jsx",
+      "local": "input/src/dashboard/components/menu/WithPopoverMenu.jsx",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/superset-frontend/src/dashboard/components/menu/WithPopoverMenu.jsx",
+      "sha256": "22cb1730bd331b6fa56460669505f32e1a85d98d3a0405ea61938a9ba0618f28",
+      "bytes": 4274
+    },
+    {
+      "source": "superset-frontend/src/explore/components/DisplayQueryButton.jsx",
+      "local": "input/src/explore/components/DisplayQueryButton.jsx",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/superset-frontend/src/explore/components/DisplayQueryButton.jsx",
+      "sha256": "f685950a31e30d5e10a39f276bcfac54449eba2e167b47c4cd46c7b9b6553f86",
+      "bytes": 6684
+    },
+    {
+      "source": "superset-frontend/src/common/components/Dropdown.tsx",
+      "local": "reference/src/common/components/Dropdown.tsx",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/superset-frontend/src/common/components/Dropdown.tsx",
+      "sha256": "e1da2006b843641e5bdc0b5b3796b2de832d49caa8afb0335a9a4df9fe5e7bd0",
+      "bytes": 4639
+    },
+    {
+      "source": "superset-frontend/src/common/components/index.tsx",
+      "local": "reference/src/common/components/index.tsx",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/superset-frontend/src/common/components/index.tsx",
+      "sha256": "4ea0f70a7e94d1acdd6bf81bef2be09e267cffe8d99c6698c151beffe6fd0b64",
+      "bytes": 2913
+    },
+    {
+      "source": "superset-frontend/package.json",
+      "local": "reference/package.json",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/superset-frontend/package.json",
+      "sha256": "617b93a5cc467c87c9f38ba63a0e81bcd53f3c4c0c34f696eb85eeef7480339d",
+      "bytes": 11945
+    },
+    {
+      "source": "LICENSE.txt",
+      "local": "reference/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/LICENSE.txt",
+      "sha256": "ff254eb676d6ed2b36f26a74e7c50411cd57e11823f3e91004ffe48fcfd273cf",
+      "bytes": 11585
+    },
+    {
+      "source": "NOTICE",
+      "local": "reference/NOTICE",
+      "url": "https://raw.githubusercontent.com/apache/superset/f85497e69bb37ea6847cd6640062fdc1e145037a/NOTICE",
+      "sha256": "8b23be1c9b920a8f934821e1a83f29c79ff3b30d7a8f311dfd75c3b3e2cd0798",
+      "bytes": 169
+    },
+    {
+      "source": "ant-design@4.9.4/antd-dropdown.tsx",
+      "local": "reference/antd-dropdown.tsx",
+      "url": "https://raw.githubusercontent.com/ant-design/ant-design/4.9.4/components/dropdown/dropdown.tsx",
+      "sha256": "cdeaf3634f6b7820c7319a502fe59b27161c137dc37d607fb726802669926b42",
+      "bytes": 5111
+    },
+    {
+      "source": "ant-design@4.9.4/antd-LICENSE",
+      "local": "reference/antd-LICENSE",
+      "url": "https://raw.githubusercontent.com/ant-design/ant-design/4.9.4/LICENSE",
+      "sha256": "3c82654bb472ebbcacc4c1ff00f94aa8c60c4b7ee011b16bafcbacecc3703458",
+      "bytes": 1099
+    }
+  ],
+  "selection": "Two DropdownButton consumers and their focus-management wrapper from a merged historical migration; selected changed files, not an unbiased sample.",
+  "limitations": [
+    "Public historical outcome may be in training data",
+    "No full app build, browser test or customer acceptance",
+    "Historical after-code is not the evaluation oracle"
+  ]
+}

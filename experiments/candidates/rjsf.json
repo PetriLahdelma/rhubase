@@ -1,0 +1,33 @@
+{
+  "repository": "https://github.com/rjsf-team/react-jsonschema-form",
+  "revision": "2665ec337306b0e4d5da72db8836bae54b7ad0dc",
+  "classification": "reference-only",
+  "customer_validation": false,
+  "reason": "A multi-theme library intentionally supporting several design systems; not an actual customer consolidation request. Sources are read-only references, no code downloaded for execution.",
+  "files": [
+    {
+      "path": "LICENSE.md",
+      "url": "https://raw.githubusercontent.com/rjsf-team/react-jsonschema-form/2665ec337306b0e4d5da72db8836bae54b7ad0dc/LICENSE.md",
+      "sha256": "2590ed517c3e27c426127a85b4559cf8c7a287f1dd3a12892e8a10cb7d49c8ca",
+      "bytes": 10934
+    },
+    {
+      "path": "packages/playground/package.json",
+      "url": "https://raw.githubusercontent.com/rjsf-team/react-jsonschema-form/2665ec337306b0e4d5da72db8836bae54b7ad0dc/packages/playground/package.json",
+      "sha256": "84ade5c1cebcc20de027f8e3b07e1bea84af07969b6ca65b9af59eeae1c7b743",
+      "bytes": 2844
+    },
+    {
+      "path": "packages/antd/src/templates/SubmitButton/index.tsx",
+      "url": "https://raw.githubusercontent.com/rjsf-team/react-jsonschema-form/2665ec337306b0e4d5da72db8836bae54b7ad0dc/packages/antd/src/templates/SubmitButton/index.tsx",
+      "sha256": "40618f69387857df7ca64edd38086238198d99adefc3dfd71e2ee77f921cf0f1",
+      "bytes": 812
+    },
+    {
+      "path": "packages/mui/src/SubmitButton/SubmitButton.tsx",
+      "url": "https://raw.githubusercontent.com/rjsf-team/react-jsonschema-form/2665ec337306b0e4d5da72db8836bae54b7ad0dc/packages/mui/src/SubmitButton/SubmitButton.tsx",
+      "sha256": "fc473ae292504054a29beb8f33cb5661ba761227803d12118e5060215fb2cb68",
+      "bytes": 1792
+    }
+  ]
+}

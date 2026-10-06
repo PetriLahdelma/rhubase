@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+
+# Runtime/compiler upgrades require coordinated identity and regression updates.
+# They are intentionally reviewed manually rather than auto-merged.

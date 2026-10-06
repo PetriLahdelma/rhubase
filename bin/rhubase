@@ -1,0 +1,84 @@
+#!/usr/bin/env node
+
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const minimumNodeMajor = 22;
+const nodeMajor = Number.parseInt(process.versions.node.split('.')[0], 10);
+if (!Number.isInteger(nodeMajor) || nodeMajor < minimumNodeMajor) {
+  process.stderr.write(`RhuBase requires Node.js ${minimumNodeMajor} or newer. Current: ${process.versions.node}\n`);
+  process.exit(1);
+}
+
+const entry = fs.realpathSync(fileURLToPath(import.meta.url));
+const checkout = path.resolve(path.dirname(entry), '..');
+const binary = path.join(checkout, 'target', 'release', 'ctrl-shift');
+const compiler = path.join(checkout, 'node_modules', 'typescript', 'lib', 'typescript.js');
+const args = process.argv.slice(2);
+
+if (!fs.existsSync(binary)) {
+  process.stderr.write(
+    'RhuBase has not been built in this checkout.\n' +
+    'From the RhuBase checkout, run:\n' +
+    '  npm ci --ignore-scripts\n' +
+    '  cargo build --release --locked --bin ctrl-shift\n',
+  );
+  process.exit(1);
+}
+
+const env = { ...process.env, RHUBASE_CLI: '1' };
+const command = args.find((value) => value === 'infer' || value === 'assess');
+const hasCompilerFlag = args.some((value) => value === '--compiler');
+const hasCompilerEnvironment = typeof env.SHIFT_TYPESCRIPT_PATH === 'string'
+  && env.SHIFT_TYPESCRIPT_PATH.length > 0;
+if (command === 'infer' && !hasCompilerFlag && !hasCompilerEnvironment) {
+  if (!fs.existsSync(compiler)) {
+    process.stderr.write(
+      'RhuBase cannot find its pinned TypeScript runtime.\n' +
+      'From the RhuBase checkout, run:\n' +
+      '  npm ci --ignore-scripts\n',
+    );
+    process.exit(1);
+  }
+  env.SHIFT_TYPESCRIPT_PATH = compiler;
+}
+
+const child = spawn(binary, args, {
+  cwd: process.cwd(),
+  env,
+  shell: false,
+  stdio: 'inherit',
+});
+let spawnFailed = false;
+
+const forwarded = new Map();
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+  const handler = () => {
+    if (!child.killed) child.kill(signal);
+  };
+  forwarded.set(signal, handler);
+  process.on(signal, handler);
+}
+
+child.once('error', (error) => {
+  spawnFailed = true;
+  process.stderr.write(
+    'RhuBase could not start its local coordinator.\n' +
+    'From the RhuBase checkout, run:\n' +
+    '  npm ci --ignore-scripts\n' +
+    '  cargo build --release --locked --bin ctrl-shift\n',
+  );
+  process.exitCode = 1;
+});
+
+child.once('close', (code, signal) => {
+  for (const [name, handler] of forwarded) process.off(name, handler);
+  if (spawnFailed) return;
+  if (signal) {
+    process.kill(process.pid, signal);
+    return;
+  }
+  process.exitCode = code ?? 1;
+});
