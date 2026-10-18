@@ -47,10 +47,27 @@ try {
   const version = command(path.join(checkout, 'bin/rhubase'), ['--version'], { cwd: caller });
   assert.match(version.stdout, /rhubase|ctrl-shift/i);
 
+  const intake = path.join(scratch, 'new foundation');
+  command(path.join(checkout, 'bin/rhubase'), [
+    'compose', '--init', '--target', '@example/foundation',
+    '--source', `a=${path.join(checkout, 'examples/composition/a')}`,
+    '--source', `b=${path.join(checkout, 'examples/composition/b')}`,
+    '--out', intake, '--quiet',
+  ], { cwd: caller });
+  const project = JSON.parse(await fs.readFile(path.join(intake, 'project.json'), 'utf8'));
+  assert.equal(project.scenarios[0].selections.length, 0);
+  assert.ok(project.sources.every((source) => /^[a-f0-9]{64}$/.test(source.digest)));
+  const blueprint = JSON.parse(await fs.readFile(path.join(intake, 'blueprint.json'), 'utf8'));
+  assert.ok(blueprint.sources.some((source) => source.capabilities.length > 0));
+  assert.equal(blueprint.executable, false);
+  const workspace = await fs.readFile(path.join(intake, 'workspace.html'), 'utf8');
+  assert.match(workspace, /Content-Security-Policy/i);
+  assert.match(workspace, /RhuBase/);
+
   for (const [relative, expected] of before) {
     assert.equal(digest(await fs.readFile(path.join(repository, relative))), expected, `source changed: ${relative}`);
   }
-  process.stdout.write(`clean checkout verified: ${files.length} files; offline npm install; locked offline Rust build; wrapper version from unrelated cwd\n`);
+  process.stdout.write(`clean checkout verified: ${files.length} files; offline npm install; locked offline Rust build; wrapper version and compose intake/workspace from unrelated cwd\n`);
 } finally {
   await fs.rm(scratch, { recursive: true, force: true });
 }

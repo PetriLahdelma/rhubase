@@ -29,11 +29,11 @@ if (!fs.existsSync(binary)) {
 }
 
 const env = { ...process.env, RHUBASE_CLI: '1' };
-const command = args.find((value) => value === 'infer' || value === 'assess');
+const command = args.find((value) => value === 'infer' || value === 'assess' || value === 'compose');
 const hasCompilerFlag = args.some((value) => value === '--compiler');
 const hasCompilerEnvironment = typeof env.SHIFT_TYPESCRIPT_PATH === 'string'
   && env.SHIFT_TYPESCRIPT_PATH.length > 0;
-if (command === 'infer' && !hasCompilerFlag && !hasCompilerEnvironment) {
+if ((command === 'infer' || command === 'compose') && !hasCompilerFlag && !hasCompilerEnvironment) {
   if (!fs.existsSync(compiler)) {
     process.stderr.write(
       'RhuBase cannot find its pinned TypeScript runtime.\n' +

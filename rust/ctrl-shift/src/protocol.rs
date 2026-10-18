@@ -110,6 +110,15 @@ impl<'de> Visitor<'de> for StrictVisitor {
 pub fn request_id(seed: &[u8]) -> String {
     sha256_bytes(seed)
 }
+pub fn decode_strict_json(bytes: &[u8], label: &str) -> Result<Value> {
+    let mut deserializer = serde_json::Deserializer::from_slice(bytes);
+    let StrictValue(value) = StrictValue::deserialize(&mut deserializer)
+        .map_err(|error| AppError::new(format!("invalid {label}: {error}")))?;
+    deserializer
+        .end()
+        .map_err(|error| AppError::new(format!("trailing {label}: {error}")))?;
+    Ok(value)
+}
 pub fn encode_request<'a>(
     request_id: &'a str,
     from: &'a str,
@@ -217,6 +226,7 @@ fn valid_error_code(value: &str) -> bool {
         "serialization-failed",
         "resolution-failed",
         "assessment-failed",
+        "composition-failed",
     ]
     .contains(&value)
 }

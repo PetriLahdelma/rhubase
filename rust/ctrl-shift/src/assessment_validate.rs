@@ -1,6 +1,7 @@
 use crate::{
     assessment::{RepositoryGuard, Resolution},
     error::{AppError, Result},
+    paths::sha256_bytes,
 };
 use serde_json::{Map, Value};
 use std::collections::{HashMap, HashSet};
@@ -17,6 +18,11 @@ const UNSUPPORTED_KINDS: &[&str] = &[
     "dynamic-module-binding",
     "non-jsx-reference",
     "excluded-source-library",
+];
+const WRAPPER_INVESTIGATION_KINDS: &[&str] = &[
+    "wrapper-usage",
+    "local-reexport-resolution",
+    "factory-or-alias",
 ];
 
 fn invalid(message: impl Into<String>) -> AppError {
@@ -222,6 +228,55 @@ fn validate_evidence_array(
         validate_evidence(item, cache, expected, &format!("{label}[{index}]"))?;
     }
     Ok(())
+}
+
+fn quote_occurrence_contains(
+    source: &str,
+    quote: &str,
+    claimed_start_line: usize,
+    claimed_end_line: usize,
+    location: Location,
+) -> bool {
+    source.match_indices(quote).any(|(start, matched)| {
+        let end = start + matched.len();
+        line_at(source, start) == claimed_start_line
+            && line_at(source, end) == claimed_end_line
+            && utf16_offset(source, start) <= location.start
+            && utf16_offset(source, end) >= location.end
+    })
+}
+
+fn evidence_contains_location(
+    value: &Value,
+    cache: &mut EvidenceCache<'_>,
+    location: Location,
+    label: &str,
+) -> Result<bool> {
+    let evidence = object(value, label)?;
+    let file = text(field(evidence, "file", label)?, &format!("{label}.file"))?;
+    let start_line = number(
+        field(evidence, "startLine", label)?,
+        &format!("{label}.startLine"),
+    )?;
+    let end_line = number(
+        field(evidence, "endLine", label)?,
+        &format!("{label}.endLine"),
+    )?;
+    let quote = text(field(evidence, "quote", label)?, &format!("{label}.quote"))?;
+    let cached = cache.read(file)?;
+    Ok(quote_occurrence_contains(
+        &cached.text,
+        quote,
+        start_line,
+        end_line,
+        location,
+    ))
+}
+
+fn usage_evidence_matches_file(evidence: &[Value], expected_file: &str) -> bool {
+    evidence
+        .iter()
+        .any(|item| item.get("file").and_then(Value::as_str) == Some(expected_file))
 }
 
 fn validate_repository(
@@ -643,11 +698,25 @@ struct UsageRecord {
     location: Location,
 }
 
+struct UnsupportedRecord {
+    kind: String,
+    file: Option<String>,
+    location: Option<Location>,
+    evidence: Vec<Value>,
+}
+
+fn grounded_wrapper_unknown(record: &UnsupportedRecord) -> bool {
+    record.file.is_some() && record.location.is_some() && !record.evidence.is_empty()
+}
+
 fn validate_usage_inventory(
     value: &Value,
     resolution: &Resolution,
     cache: &mut EvidenceCache<'_>,
-) -> Result<(HashMap<String, UsageRecord>, HashSet<String>)> {
+) -> Result<(
+    HashMap<String, UsageRecord>,
+    HashMap<String, UnsupportedRecord>,
+)> {
     let map = object(value, "usageInventory")?;
     exact(
         map,
@@ -785,7 +854,7 @@ fn validate_usage_inventory(
             return Err(invalid("duplicate usage id"));
         }
     }
-    let mut unsupported_ids = HashSet::new();
+    let mut unsupported = HashMap::new();
     for (index, value) in array(
         field(map, "unsupported", "usageInventory")?,
         "usageInventory.unsupported",
@@ -807,7 +876,7 @@ fn validate_usage_inventory(
         let kind = text(field(item, "kind", &label)?, &format!("{label}.kind"))?;
         if !UNSUPPORTED_KINDS.contains(&kind)
             || usages.contains_key(id)
-            || !unsupported_ids.insert(id.to_owned())
+            || unsupported.contains_key(id)
         {
             return Err(invalid(format!("{label} identity/kind")));
         }
@@ -822,27 +891,48 @@ fn validate_usage_inventory(
         {
             return Err(invalid(format!("{label} has partial location")));
         }
-        let expected = if has_location {
+        let (unsupported_file, expected) = if has_location {
             let file = text(field(item, "file", &label)?, &format!("{label}.file"))?;
             if !relative(file) {
                 return Err(invalid(format!("{label}.file")));
             }
-            Some(Location {
-                line: number(field(item, "line", &label)?, &format!("{label}.line"))?,
-                column: number(field(item, "column", &label)?, &format!("{label}.column"))?,
-                start: number(field(item, "start", &label)?, &format!("{label}.start"))?,
-                end: number(field(item, "end", &label)?, &format!("{label}.end"))?,
-            })
+            (
+                Some(file.to_owned()),
+                Some(Location {
+                    line: number(field(item, "line", &label)?, &format!("{label}.line"))?,
+                    column: number(field(item, "column", &label)?, &format!("{label}.column"))?,
+                    start: number(field(item, "start", &label)?, &format!("{label}.start"))?,
+                    end: number(field(item, "end", &label)?, &format!("{label}.end"))?,
+                }),
+            )
         } else {
-            None
+            (None, None)
         };
+        let evidence = field(item, "evidence", &label)?;
         validate_evidence_array(
-            field(item, "evidence", &label)?,
+            evidence,
             cache,
             expected,
             !has_location,
             &format!("{label}.evidence"),
         )?;
+        let evidence = array(evidence, &format!("{label}.evidence"))?.clone();
+        if let Some(file) = unsupported_file.as_deref()
+            && evidence
+                .iter()
+                .any(|item| item.get("file").and_then(Value::as_str) != Some(file))
+        {
+            return Err(invalid(format!("{label}.evidence file mismatch")));
+        }
+        unsupported.insert(
+            id.to_owned(),
+            UnsupportedRecord {
+                kind: kind.to_owned(),
+                file: unsupported_file,
+                location: expected,
+                evidence,
+            },
+        );
     }
     let coverage = object(
         field(map, "coverage", "usageInventory")?,
@@ -869,7 +959,7 @@ fn validate_usage_inventory(
         || number(
             field(coverage, "unsupportedCount", "usageInventory.coverage")?,
             "unsupportedCount",
-        )? != unsupported_ids.len()
+        )? != unsupported.len()
         || number(
             field(
                 coverage,
@@ -877,7 +967,7 @@ fn validate_usage_inventory(
                 "usageInventory.coverage",
             )?,
             "observedUnsupportedCount",
-        )? != unsupported_ids.len()
+        )? != unsupported.len()
     {
         return Err(invalid("usage coverage counts/status"));
     }
@@ -922,7 +1012,271 @@ fn validate_usage_inventory(
     {
         return Err(invalid("usage limitations"));
     }
-    Ok((usages, unsupported_ids))
+    Ok((usages, unsupported))
+}
+
+fn evidence_tuple(value: &Value, label: &str) -> Result<Value> {
+    let evidence = object(value, label)?;
+    Ok(Value::Array(vec![
+        field(evidence, "file", label)?.clone(),
+        field(evidence, "sha256", label)?.clone(),
+        field(evidence, "startLine", label)?.clone(),
+        field(evidence, "endLine", label)?.clone(),
+        field(evidence, "quote", label)?.clone(),
+    ]))
+}
+
+fn sorted_unique_values(values: &[Value], label: &str) -> Result<Vec<Value>> {
+    let mut keyed = values
+        .iter()
+        .map(|value| Ok((json_key(value)?, value.clone())))
+        .collect::<Result<Vec<_>>>()?;
+    keyed.sort_by(|left, right| left.0.cmp(&right.0));
+    if keyed.windows(2).any(|pair| pair[0].0 == pair[1].0) {
+        return Err(invalid(format!("{label} contains duplicates")));
+    }
+    Ok(keyed.into_iter().map(|(_, value)| value).collect())
+}
+
+fn validate_wrapper_investigations(
+    value: &Value,
+    sources: &Value,
+    usages: &HashMap<String, UsageRecord>,
+    unsupported: &HashMap<String, UnsupportedRecord>,
+    cache: &mut EvidenceCache<'_>,
+) -> Result<()> {
+    let packets = array(value, "wrapperInvestigations")?;
+    if packets.len() > 256 {
+        return Err(invalid("wrapperInvestigations exceeds packet budget"));
+    }
+    let sources = array(sources, "assessment.sources")?;
+    let mut packet_ids = HashSet::new();
+    let mut assigned_unknowns = HashSet::new();
+    let mut assigned_usages = HashSet::new();
+    let mut link_count = 0_usize;
+    for (index, value) in packets.iter().enumerate() {
+        let label = format!("wrapperInvestigations[{index}]");
+        let packet = object(value, &label)?;
+        exact(
+            packet,
+            &[
+                "id",
+                "revision",
+                "sourceId",
+                "sourceExport",
+                "definition",
+                "innerUsageIds",
+                "unknownIds",
+                "bindingEvidence",
+                "status",
+                "executable",
+            ],
+            &label,
+        )?;
+        let id = text(field(packet, "id", &label)?, &format!("{label}.id"))?;
+        if !id.starts_with("wrapper:")
+            || id.len() != 28
+            || !id[8..]
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+            || !packet_ids.insert(id.to_owned())
+        {
+            return Err(invalid(format!("{label}.id identity")));
+        }
+        if field(packet, "status", &label)?.as_str() != Some("needs-review")
+            || field(packet, "executable", &label)?.as_bool() != Some(false)
+        {
+            return Err(invalid(format!(
+                "{label} must be needs-review and non-executable"
+            )));
+        }
+        let source_id = text(
+            field(packet, "sourceId", &label)?,
+            &format!("{label}.sourceId"),
+        )?;
+        let source_export = text(
+            field(packet, "sourceExport", &label)?,
+            &format!("{label}.sourceExport"),
+        )?;
+        let source = sources
+            .iter()
+            .find(|source| source.get("id").and_then(Value::as_str) == Some(source_id))
+            .ok_or_else(|| invalid(format!("{label}.sourceId is not selected")))?;
+        let source_digest = source
+            .pointer("/identity/digest")
+            .and_then(Value::as_str)
+            .filter(|digest| {
+                digest.len() == 64
+                    && digest
+                        .bytes()
+                        .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+            })
+            .ok_or_else(|| invalid(format!("{label} source digest")))?;
+
+        let definition = object(
+            field(packet, "definition", &label)?,
+            &format!("{label}.definition"),
+        )?;
+        exact(
+            definition,
+            &["file", "name", "evidence"],
+            &format!("{label}.definition"),
+        )?;
+        let definition_file = text(
+            field(definition, "file", "definition")?,
+            &format!("{label}.definition.file"),
+        )?;
+        if !relative(definition_file) {
+            return Err(invalid(format!("{label}.definition.file is unsafe")));
+        }
+        let definition_name = text(
+            field(definition, "name", "definition")?,
+            &format!("{label}.definition.name"),
+        )?;
+        let definition_evidence = array(
+            field(definition, "evidence", "definition")?,
+            &format!("{label}.definition.evidence"),
+        )?;
+        if definition_evidence.len() != 1
+            || definition_evidence[0].get("file").and_then(Value::as_str) != Some(definition_file)
+        {
+            return Err(invalid(format!("{label}.definition evidence")));
+        }
+        validate_evidence(
+            &definition_evidence[0],
+            cache,
+            None,
+            &format!("{label}.definition.evidence[0]"),
+        )?;
+
+        let inner_ids = array(
+            field(packet, "innerUsageIds", &label)?,
+            &format!("{label}.innerUsageIds"),
+        )?;
+        if inner_ids.len() != 1 {
+            return Err(invalid(format!(
+                "{label}.innerUsageIds must contain one usage"
+            )));
+        }
+        let inner_id = text(&inner_ids[0], &format!("{label}.innerUsageIds[0]"))?;
+        let inner = usages
+            .get(inner_id)
+            .ok_or_else(|| invalid(format!("{label} references unknown inner usage")))?;
+        if inner.source_id != source_id
+            || inner.export != source_export
+            || !assigned_usages.insert(inner_id.to_owned())
+        {
+            return Err(invalid(format!(
+                "{label} inner usage source/export/uniqueness"
+            )));
+        }
+        if !usage_evidence_matches_file(&inner.evidence, definition_file)
+            || !evidence_contains_location(
+                &definition_evidence[0],
+                cache,
+                inner.location,
+                &format!("{label}.definition.evidence[0]"),
+            )?
+        {
+            return Err(invalid(format!(
+                "{label}.definition does not contain inner usage"
+            )));
+        }
+
+        let expected_id_seed = serde_json::to_vec(&serde_json::json!([
+            source_id,
+            source_export,
+            definition_file,
+            definition_name
+        ]))?;
+        let expected_id = format!("wrapper:{}", &sha256_bytes(&expected_id_seed)[..20]);
+        if id != expected_id {
+            return Err(invalid(format!("{label}.id mismatch")));
+        }
+
+        let unknown_values = array(
+            field(packet, "unknownIds", &label)?,
+            &format!("{label}.unknownIds"),
+        )?;
+        if unknown_values.is_empty() {
+            return Err(invalid(format!("{label}.unknownIds must not be empty")));
+        }
+        let unknown_ids = unknown_values
+            .iter()
+            .enumerate()
+            .map(|(unknown_index, value)| {
+                text(value, &format!("{label}.unknownIds[{unknown_index}]")).map(str::to_owned)
+            })
+            .collect::<Result<Vec<_>>>()?;
+        if unknown_ids.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return Err(invalid(format!(
+                "{label}.unknownIds must be sorted and unique"
+            )));
+        }
+        let mut call_site_tuples = Vec::new();
+        for unknown_id in &unknown_ids {
+            let record = unsupported
+                .get(unknown_id)
+                .ok_or_else(|| invalid(format!("{label} references unknown unsupported ID")))?;
+            if !WRAPPER_INVESTIGATION_KINDS.contains(&record.kind.as_str())
+                || !grounded_wrapper_unknown(record)
+                || !assigned_unknowns.insert(unknown_id.clone())
+            {
+                return Err(invalid(format!("{label} unsupported kind/uniqueness")));
+            }
+            for evidence in &record.evidence {
+                call_site_tuples.push(evidence_tuple(evidence, "call-site evidence")?);
+            }
+        }
+        link_count += unknown_ids.len();
+        if link_count > 4096 {
+            return Err(invalid("wrapperInvestigations exceeds link budget"));
+        }
+        call_site_tuples = sorted_unique_values(&call_site_tuples, "call-site evidence")?;
+
+        let binding_evidence = array(
+            field(packet, "bindingEvidence", &label)?,
+            &format!("{label}.bindingEvidence"),
+        )?;
+        if binding_evidence.is_empty() {
+            return Err(invalid(format!(
+                "{label}.bindingEvidence must not be empty"
+            )));
+        }
+        let mut binding_tuples = Vec::new();
+        for (evidence_index, evidence) in binding_evidence.iter().enumerate() {
+            validate_evidence(
+                evidence,
+                cache,
+                None,
+                &format!("{label}.bindingEvidence[{evidence_index}]"),
+            )?;
+            binding_tuples.push(evidence_tuple(evidence, "binding evidence")?);
+        }
+        let sorted_binding_tuples =
+            sorted_unique_values(&binding_tuples, &format!("{label}.bindingEvidence"))?;
+        if binding_tuples != sorted_binding_tuples {
+            return Err(invalid(format!("{label}.bindingEvidence must be sorted")));
+        }
+
+        let definition_tuple = evidence_tuple(&definition_evidence[0], "definition evidence")?;
+        let revision_seed = serde_json::to_vec(&serde_json::json!([
+            source_digest,
+            definition_tuple,
+            sorted_binding_tuples,
+            unknown_ids,
+            call_site_tuples
+        ]))?;
+        let expected_revision = sha256_bytes(&revision_seed);
+        let revision = text(
+            field(packet, "revision", &label)?,
+            &format!("{label}.revision"),
+        )?;
+        if revision != expected_revision {
+            return Err(invalid(format!("{label}.revision mismatch")));
+        }
+    }
+    Ok(())
 }
 
 fn ref_matches_group(
@@ -1539,6 +1893,7 @@ pub fn validate_assessment(
             "target",
             "sources",
             "usageInventory",
+            "wrapperInvestigations",
             "mappingGroups",
             "decisionsRequired",
             "verificationCandidates",
@@ -1573,9 +1928,16 @@ pub fn validate_assessment(
     validate_sources_target(map, resolution, contracts)?;
     let indexes = contract_indexes(contracts)?;
     let mut cache = EvidenceCache::new(repository_guard);
-    let (usages, _) = validate_usage_inventory(
+    let (usages, unsupported) = validate_usage_inventory(
         field(map, "usageInventory", "assessment")?,
         resolution,
+        &mut cache,
+    )?;
+    validate_wrapper_investigations(
+        field(map, "wrapperInvestigations", "assessment")?,
+        field(map, "sources", "assessment")?,
+        &usages,
+        &unsupported,
         &mut cache,
     )?;
     validate_groups_decisions(
@@ -1629,6 +1991,75 @@ mod tests {
         let value = json!({"status":"needs-review","approved":true});
         let map = value.as_object().expect("object");
         assert!(exact(map, &["status"], "decision").is_err());
+    }
+
+    #[test]
+    fn wrapper_packets_admit_only_linker_supported_warning_kinds() {
+        assert!(WRAPPER_INVESTIGATION_KINDS.contains(&"wrapper-usage"));
+        assert!(WRAPPER_INVESTIGATION_KINDS.contains(&"local-reexport-resolution"));
+        assert!(WRAPPER_INVESTIGATION_KINDS.contains(&"factory-or-alias"));
+        assert!(!WRAPPER_INVESTIGATION_KINDS.contains(&"non-jsx-reference"));
+        assert!(!WRAPPER_INVESTIGATION_KINDS.contains(&"spread-props"));
+    }
+
+    #[test]
+    fn definition_quote_must_cover_inner_usage_utf16_span_even_on_one_line() {
+        let source = "const icon = '🌿'; const unrelated = <Card />; export const Button = () => <Button />;";
+        let inner_start = source.rfind("<Button").expect("inner start");
+        let inner_end = inner_start + "<Button />".len();
+        let inner = Location {
+            line: 1,
+            column: column_at(source, inner_start),
+            start: utf16_offset(source, inner_start),
+            end: utf16_offset(source, inner_end),
+        };
+        assert!(!quote_occurrence_contains(
+            source,
+            "const unrelated = <Card />;",
+            1,
+            1,
+            inner
+        ));
+        assert!(quote_occurrence_contains(
+            source,
+            "export const Button = () => <Button />;",
+            1,
+            1,
+            inner
+        ));
+    }
+
+    #[test]
+    fn definition_and_inner_usage_must_share_the_same_guarded_file() {
+        let usage = json!({"file":"src/Inner.tsx"});
+        assert!(usage_evidence_matches_file(
+            std::slice::from_ref(&usage),
+            "src/Inner.tsx"
+        ));
+        assert!(!usage_evidence_matches_file(
+            std::slice::from_ref(&usage),
+            "src/Unrelated.tsx"
+        ));
+    }
+
+    #[test]
+    fn packet_linked_unknowns_require_file_coordinates_and_evidence() {
+        let grounded = UnsupportedRecord {
+            kind: "wrapper-usage".to_owned(),
+            file: Some("src/App.tsx".to_owned()),
+            location: Some(Location {
+                line: 1,
+                column: 1,
+                start: 0,
+                end: 10,
+            }),
+            evidence: vec![json!({"file":"src/App.tsx"})],
+        };
+        assert!(grounded_wrapper_unknown(&grounded));
+        assert!(!grounded_wrapper_unknown(&UnsupportedRecord {
+            file: None,
+            ..grounded
+        }));
     }
 
     #[test]

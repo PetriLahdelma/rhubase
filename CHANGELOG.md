@@ -4,7 +4,15 @@ All notable changes to RhuBase will be documented here. The project has not publ
 
 ## [Unreleased]
 
+## [0.1.0-alpha.1]
+
+Experimental read-only release. Build from source on macOS; no registry package or hosted account is required.
+
 ### Added
+
+- Source-only composition with `compose --init`, pinned project export and semantic scenario comparisons.
+- Offline manual composition workspace with editing, branching, undo/redo and project import/export.
+- Source-qualified wrapper investigation packets retaining unresolved call sites and definition evidence revisions.
 
 - Illustrated assessment overview, with a full process chart and editable PDF.
 - README status badges and optional community funding links.
@@ -19,9 +27,15 @@ All notable changes to RhuBase will be documented here. The project has not publ
 
 ### Changed
 
+- Dynamic and spread usages retain documented candidates without selecting an unverified target or rejecting the entire assessment.
+- Package and CLI version metadata explicitly identify this prerelease.
+
 - Human assessment reports now distinguish usage conditions, source systems, parser limitations, verification candidates, other lifecycle scripts, and coverage gaps.
 
 ### Known limitations
+
+- Browser smoke verification is a separate release gate; its result and tested scope belong in the GitHub release notes. Automated DOM binding tests do not establish browser behavior or accessibility conformance.
+- Composition and wrapper investigation support bounded static profiles. They do not prove runtime, theme, provider or accessibility compatibility.
 
 - Assessment publication is currently supported on macOS.
 - Consumer discovery is a bounded static JavaScript/TypeScript analysis and does not cover every wrapper, runtime, styling, token, or generated-code pattern.

@@ -83,6 +83,48 @@ test('assessment outputs are deterministic across distinct directories', async (
   for (const name of Object.keys(first)) assert.deepEqual(second[name], first[name], name);
 });
 
+test('one documented target with static and unresolved props publishes a complete mixed-source draft', async (t) => {
+  const mixed = await createAssessmentFixture(t);
+  await fs.appendFile(path.join(mixed.root, 'packages/legacy-a/index.d.ts'), 'export declare function LegacyGrid(props: { columns?: number }): unknown;\n');
+  await fs.appendFile(path.join(mixed.root, 'packages/target/index.d.ts'), 'export declare function GridLegacy(props: { columns?: number }): unknown;\n');
+  await fs.appendFile(path.join(mixed.root, 'packages/target/MIGRATION.md'), '\nLegacyGrid is renamed to GridLegacy.\n');
+  const caseFile = path.join(mixed.root, 'packages/app/src/Rhu006.tsx');
+  await fs.writeFile(caseFile, `
+import { LegacyGrid } from '@legacy/a';
+import { Button as LegacyB } from '@legacy/b';
+const literal = <LegacyGrid columns={8} />;
+const omitted = <LegacyGrid />;
+const explicitUndefined = <LegacyGrid columns={undefined} />;
+const dynamic = <LegacyGrid columns={columnValue} />;
+const spread = <LegacyGrid {...props} />;
+const otherSource = <LegacyB selected={selectedValue} />;
+`);
+  const before = await treeDigest(mixed.root);
+  const output = path.join(root, 'rhu-006-mixed');
+  const result = spawnSync(binary, ['assess', mixed.root, '--source', '@legacy/a', '--source', '@legacy/b', '--target', '@target/ui', '--out', output, '--node', process.execPath], { cwd: root, env: { ...process.env }, encoding: 'utf8', timeout: 30000, maxBuffer: 8 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr);
+  const assessment = JSON.parse(await fs.readFile(path.join(output, 'assessment.json'), 'utf8'));
+  const sourceA = assessment.sources.find((source) => source.importName === '@legacy/a').id;
+  const caseUsageIds = new Set(assessment.usageInventory.usages.filter((usage) => usage.file === 'packages/app/src/Rhu006.tsx' && usage.sourceId === sourceA).map((usage) => usage.id));
+  assert.equal(caseUsageIds.size, 5, 'literal, omitted, undefined, dynamic, and spread usages are all retained');
+  const groups = assessment.mappingGroups.filter((group) => group.usageIds.some((id) => caseUsageIds.has(id)));
+  const staticGroups = groups.filter((group) => group.condition.hasSpread === false && group.condition.dynamicProps.length === 0);
+  const dynamicGroup = groups.find((group) => group.condition.hasSpread === false && group.condition.dynamicProps.includes('columns'));
+  const spreadGroup = groups.find((group) => group.condition.hasSpread === true);
+  assert.ok(staticGroups.some((group) => group.condition.presentProps.length === 0 && group.route === 'mapping-to-review' && group.target?.export === 'GridLegacy'));
+  assert.ok(staticGroups.some((group) => group.condition.presentProps.includes('columns') && group.route === 'mapping-to-review' && group.target?.export === 'GridLegacy'));
+  for (const group of [dynamicGroup, spreadGroup]) {
+    assert.ok(group);
+    assert.equal(group.route, 'decision-required');
+    assert.equal(group.target, null);
+    assert.ok(group.candidateTargets.some((candidate) => candidate.export === 'GridLegacy'));
+  }
+  assert.equal(dynamicGroup.usageIds.filter((id) => caseUsageIds.has(id)).length, 2, 'explicit undefined and dynamic expressions share the unresolved candidate group');
+  assert.ok(assessment.usageInventory.usages.some((usage) => usage.file === 'packages/app/src/Rhu006.tsx' && usage.sourceId !== sourceA), 'mixed-source usage remains in the report');
+  assert.equal(await treeDigest(mixed.root), before, 'assessment leaves all source and consumer inputs unchanged');
+  await assert.rejects(fs.lstat(mixed.marker), { code: 'ENOENT' });
+});
+
 test('Markdown report escapes hostile repository metadata without changing machine data', async (t) => {
   const hostile = await createAssessmentFixture(t); const manifestFile = path.join(hostile.root, 'package.json'); const manifestValue = JSON.parse(await fs.readFile(manifestFile, 'utf8'));
   const hostileName = 'evil`break</table>\n# injected [click](javascript:alert(1))'; manifestValue.name = hostileName; await fs.writeFile(manifestFile, JSON.stringify(manifestValue, null, 2));

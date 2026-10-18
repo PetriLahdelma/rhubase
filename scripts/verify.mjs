@@ -45,6 +45,7 @@ const nodeTests = (
   await Promise.all([
     'tests/inference',
     'tests/assessment',
+    'tests/composition',
     'tests/recipes',
     'tests/repository',
   ].map(testsUnder))

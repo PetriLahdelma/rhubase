@@ -1,6 +1,6 @@
 {
   "name": "rhubase",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "type": "module",
   "description": "Local-first design-system consolidation assessment and migration decision preparation",
@@ -24,6 +24,7 @@
     "verify": "node scripts/verify.mjs",
     "test:cli": "node scripts/test-cli.mjs",
     "example:assess": "node scripts/example-assess.mjs",
+    "example:compose": "node scripts/example-compose.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {

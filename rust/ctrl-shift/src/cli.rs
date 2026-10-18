@@ -40,6 +40,19 @@ pub struct AssessArgs {
     pub max_output_bytes: usize,
     pub globals: Globals,
 }
+#[derive(Debug, Clone)]
+pub struct ComposeArgs {
+    pub project: Option<PathBuf>,
+    pub init: bool,
+    pub target: Option<String>,
+    pub sources: Vec<String>,
+    pub compiler: Option<PathBuf>,
+    pub out: PathBuf,
+    pub node: Option<PathBuf>,
+    pub timeout_ms: u64,
+    pub max_output_bytes: usize,
+    pub globals: Globals,
+}
 #[derive(Debug)]
 pub enum Action {
     Help {
@@ -51,6 +64,7 @@ pub enum Action {
     },
     Infer(InferArgs),
     Assess(AssessArgs),
+    Compose(ComposeArgs),
 }
 
 pub fn pre_scan(values: &[String]) -> Globals {
@@ -105,6 +119,7 @@ pub fn parse(values: &[String]) -> Result<Action> {
     let mut command = None;
     let mut help = false;
     let mut version = false;
+    let mut init = false;
     let mut repo = None;
     let mut sources = Vec::new();
     let mut map = HashMap::new();
@@ -115,8 +130,10 @@ pub fn parse(values: &[String]) -> Result<Action> {
         match token.as_str() {
             "infer" if command.is_none() => command = Some("infer"),
             "assess" if command.is_none() => command = Some("assess"),
+            "compose" if command.is_none() => command = Some("compose"),
             "assess" => return Err(AppError::usage("duplicate command `assess`")),
             "infer" => return Err(AppError::usage("duplicate command `infer`")),
+            "compose" => return Err(AppError::usage("duplicate command `compose`")),
             "--help" | "-h" => {
                 if seen.insert("help".into(), ()).is_some() {
                     return Err(AppError::usage("duplicate option `--help`"));
@@ -128,6 +145,17 @@ pub fn parse(values: &[String]) -> Result<Action> {
                     return Err(AppError::usage("duplicate option `--version`"));
                 }
                 version = true;
+            }
+            "--init" if command == Some("compose") => {
+                if seen.insert("init".into(), ()).is_some() {
+                    return Err(AppError::usage("duplicate option `--init`"));
+                }
+                init = true;
+            }
+            "--init" => {
+                return Err(AppError::usage(
+                    "option `--init` requires the `compose` command",
+                ));
             }
             "--quiet" | "-q" => {
                 if seen.insert("quiet".into(), ()).is_some() {
@@ -152,7 +180,7 @@ pub fn parse(values: &[String]) -> Result<Action> {
                 globals.color = parse_color(value)
                     .ok_or_else(|| AppError::usage("`--color` must be auto, always, or never"))?;
             }
-            "--source" if command == Some("assess") => {
+            "--source" if matches!(command, Some("assess" | "compose")) => {
                 index += 1;
                 let value = values
                     .get(index)
@@ -163,10 +191,39 @@ pub fn parse(values: &[String]) -> Result<Action> {
                 sources.push(value.clone());
             }
             flag @ ("--from" | "--to" | "--compiler" | "--out" | "--node" | "--worker"
-            | "--timeout-ms" | "--max-output-bytes" | "--target") => {
+            | "--timeout-ms" | "--max-output-bytes" | "--target" | "--project") => {
                 let valid = match command {
-                    Some("infer") => flag != "--target",
-                    Some("assess") => !["--from", "--to"].contains(&flag),
+                    Some("infer") => matches!(
+                        flag,
+                        "--from"
+                            | "--to"
+                            | "--compiler"
+                            | "--out"
+                            | "--node"
+                            | "--worker"
+                            | "--timeout-ms"
+                            | "--max-output-bytes"
+                    ),
+                    Some("assess") => matches!(
+                        flag,
+                        "--compiler"
+                            | "--out"
+                            | "--node"
+                            | "--worker"
+                            | "--timeout-ms"
+                            | "--max-output-bytes"
+                            | "--target"
+                    ),
+                    Some("compose") => matches!(
+                        flag,
+                        "--compiler"
+                            | "--out"
+                            | "--node"
+                            | "--timeout-ms"
+                            | "--max-output-bytes"
+                            | "--target"
+                            | "--project"
+                    ),
                     _ => false,
                 };
                 if !valid {
@@ -240,6 +297,54 @@ pub fn parse(values: &[String]) -> Result<Action> {
             globals,
         }));
     }
+    if command == Some("compose") {
+        if !(2..=8).contains(&sources.len()) {
+            return Err(AppError::usage(
+                "compose requires 2 to 8 `--source ID=DIR` bindings",
+            ));
+        }
+        let project = map.get("--project").map(PathBuf::from);
+        let target = map.get("--target").cloned();
+        match (init, project.is_some(), target.is_some()) {
+            (true, false, true) | (false, true, false) => {}
+            (true, true, _) => {
+                return Err(AppError::usage(
+                    "`--init` and `--project` cannot be combined",
+                ));
+            }
+            (true, false, false) => {
+                return Err(AppError::usage(
+                    "missing required option `--target` for `--init`",
+                ));
+            }
+            (false, _, true) => {
+                return Err(AppError::usage("`--target` requires `--init`"));
+            }
+            (false, false, false) => {
+                return Err(AppError::usage(
+                    "compose requires either `--project` or `--init`",
+                ));
+            }
+        }
+        return Ok(Action::Compose(ComposeArgs {
+            project,
+            init,
+            target,
+            sources,
+            compiler: map.get("--compiler").map(PathBuf::from),
+            out: required("--out")?,
+            node: map.get("--node").map(PathBuf::from),
+            timeout_ms: number(&map, "--timeout-ms", 30_000, 100, 300_000)?,
+            max_output_bytes: number(
+                &map,
+                "--max-output-bytes",
+                32 * 1024 * 1024,
+                1024,
+                32 * 1024 * 1024,
+            )? as usize,
+            globals,
+        }));
+    }
     Ok(Action::Infer(InferArgs {
         from: required("--from")?,
         to: required("--to")?,
@@ -300,6 +405,92 @@ mod tests {
             parse(&args(&["x", "infer", "--wat", "a"]))
                 .unwrap_err()
                 .exit,
+            2
+        );
+    }
+    #[test]
+    fn parses_compose_without_worker_override() {
+        let Action::Compose(parsed) = parse(&args(&[
+            "x",
+            "compose",
+            "--project",
+            "p.json",
+            "--source",
+            "a=one",
+            "--source",
+            "b=two",
+            "--out",
+            "plan",
+        ]))
+        .unwrap() else {
+            panic!()
+        };
+        assert_eq!(parsed.sources, ["a=one", "b=two"]);
+        assert_eq!(parsed.project, Some(PathBuf::from("p.json")));
+        assert!(!parsed.init);
+        assert_eq!(parsed.target, None);
+    }
+    #[test]
+    fn parses_compose_init_target() {
+        let Action::Compose(parsed) = parse(&args(&[
+            "x",
+            "compose",
+            "--init",
+            "--target",
+            "@example/foundation",
+            "--source",
+            "a=one",
+            "--source",
+            "b=two",
+            "--out",
+            "plan",
+        ]))
+        .unwrap() else {
+            panic!()
+        };
+        assert_eq!(parsed.project, None);
+        assert!(parsed.init);
+        assert_eq!(parsed.target.as_deref(), Some("@example/foundation"));
+    }
+    #[test]
+    fn compose_rejects_worker_override() {
+        assert_eq!(
+            parse(&args(&[
+                "x",
+                "compose",
+                "--project",
+                "p.json",
+                "--source",
+                "a=one",
+                "--source",
+                "b=two",
+                "--out",
+                "plan",
+                "--worker",
+                "x"
+            ]))
+            .unwrap_err()
+            .exit,
+            2
+        );
+    }
+    #[test]
+    fn existing_commands_reject_compose_only_options() {
+        assert_eq!(
+            parse(&args(&["x", "infer", "--project", "p.json"]))
+                .unwrap_err()
+                .exit,
+            2
+        );
+        assert_eq!(
+            parse(&args(&["x", "assess", "--project", "p.json"]))
+                .unwrap_err()
+                .exit,
+            2
+        );
+        assert_eq!(parse(&args(&["x", "infer", "--init"])).unwrap_err().exit, 2);
+        assert_eq!(
+            parse(&args(&["x", "assess", "--init"])).unwrap_err().exit,
             2
         );
     }

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { attributes, parseProject, walk } from './source-analysis.mjs';
 import { digest, demand } from './files.mjs';
 import { verifyConsumerInventory } from './consumer-discovery.mjs';
+import { buildWrapperInvestigations } from './wrapper-investigations.mjs';
 
 const MAX_REEXPORT_DEPTH = 16;
 const MAX_RESOLUTION_EDGES = 50_000;
@@ -237,7 +238,7 @@ function bindingIsTracked(ts, checker, graph, file, identifier) {
     || ts.isNamespaceImport(declaration) || graph.aliases.get(file)?.get(identifier.text)?.node === declaration);
 }
 
-export async function discoverConsumerUsages({ root, inventory, sourcePackages, targetPackage, ts }) {
+export async function discoverConsumerUsages({ root, inventory, sourcePackages, targetPackage, sourceDigests, ts }) {
   demand(root && inventory && Array.isArray(sourcePackages) && sourcePackages.length && ts?.version === '5.9.3', 'Consumer usage discovery requires inventory, explicit sources, and TypeScript 5.9.3');
   demand(await verifyConsumerInventory(inventory), 'Consumer repository changed before usage discovery');
   const canonicalRoot = await fs.realpath(root); demand(canonicalRoot === inventory.root, 'Consumer root does not match inventory');
@@ -334,9 +335,10 @@ export async function discoverConsumerUsages({ root, inventory, sourcePackages, 
   for (const prefix of sourcePrefixes.filter(Boolean)) addUnsupported('excluded-source-library', null, null, `Selected source/target package directory excluded from consumer counts: ${prefix}`);
   usages.sort((left, right) => compareText(left.file, right.file) || left.start - right.start || compareText(left.id, right.id));
   unsupported.sort((left, right) => compareText(left.file ?? '', right.file ?? '') || (left.start ?? 0) - (right.start ?? 0) || compareText(left.kind, right.kind));
+  const wrapperInvestigations = buildWrapperInvestigations({ ts, records, checker, usages, unsupported, sourcePackages, sourceDigests });
   demand(await verifyConsumerInventory(inventory), 'Consumer repository changed during usage discovery');
   return {
-    filesScanned: records.size, usages, unsupported, jsxImports,
+    filesScanned: records.size, usages, unsupported, jsxImports, wrapperInvestigations,
     coverage: {
       status: 'partial',
       sourceFiles: { eligible: selected.length, scanned: records.size, excludedSourceLibraries: excludedFiles.length },
