@@ -156,7 +156,7 @@ function groupUsages(usageInventory, contractsBySource, codeowners) {
     const group = {
       id: groupId, sourceId: value.sourceId, export: value.sourceExport, condition: value.condition,
       usageIds, count: usageIds.length, route, reviewRequired: true,
-      target: singleTarget ? componentTargets[0] : null,
+      target: route === 'mapping-to-review' ? componentTargets[0] : null,
       candidateTargets: uniqueTargets,
       contractChangeIds: changes.map((item) => item.id).sort(compareText),
       proposalIds: proposals.map((item) => item.id).sort(compareText),
@@ -214,6 +214,7 @@ export function composeAssessment({ resolution, usageInventory, contracts }) {
       coverage: usageInventory.coverage,
     },
     mappingGroups: groups,
+    wrapperInvestigations: usageInventory.wrapperInvestigations ?? [],
     decisionsRequired: decisions,
     verificationCandidates: checks,
     limitations: [
@@ -238,7 +239,8 @@ export async function assessConsumer({ repo, sources, target, compiler, expected
     const sourceSnapshot = await extractSnapshot(source.root, loaded.ts); sourceSnapshots.set(source.id, sourceSnapshot);
     contracts.push({ sourceId: source.id, file: `contracts/${source.id}.json`, contract: compareSnapshots(sourceSnapshot, targetSnapshot, loaded.identity) });
   }
-  const usageInventory = await discoverConsumerUsages({ root: resolution.repository.root, inventory: resolution.repository, sourcePackages: resolution.sources, targetPackage: resolution.target, ts: loaded.ts });
+  const sourceDigests = new Map([...sourceSnapshots].map(([sourceId, snapshot]) => [sourceId, snapshot.identity.digest]));
+  const usageInventory = await discoverConsumerUsages({ root: resolution.repository.root, inventory: resolution.repository, sourcePackages: resolution.sources, targetPackage: resolution.target, sourceDigests, ts: loaded.ts });
   const assessment = composeAssessment({ resolution, usageInventory, contracts });
   demand(await verifyConsumerInventory(resolution.repository), 'Consumer repository changed during assessment');
   const finalTarget = await extractSnapshot(resolution.target.root, loaded.ts);

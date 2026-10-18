@@ -1,6 +1,7 @@
 use ctrl_shift::{
     assess,
     cli::{self, Action, InferArgs},
+    compose,
     error::{AppError, Result},
     paths::{self, FileGuard, OutputTarget, TreeGuard},
     process,
@@ -265,11 +266,15 @@ fn run_main() -> i32 {
         Action::Help { globals, .. }
         | Action::Version { globals }
         | Action::Infer(InferArgs { globals, .. })
-        | Action::Assess(cli::AssessArgs { globals, .. }) => *globals,
+        | Action::Assess(cli::AssessArgs { globals, .. })
+        | Action::Compose(cli::ComposeArgs { globals, .. }) => *globals,
     };
     let terminal = Terminal::new(globals);
     let cancelled = Arc::new(AtomicBool::new(false));
-    if matches!(&action, Action::Infer(_) | Action::Assess(_)) {
+    if matches!(
+        &action,
+        Action::Infer(_) | Action::Assess(_) | Action::Compose(_)
+    ) {
         let signal = Arc::clone(&cancelled);
         if let Err(error) = ctrlc::set_handler(move || signal.store(true, Ordering::SeqCst))
             .map_err(|error| AppError::new(format!("cannot register signal handler: {error}")))
@@ -429,6 +434,56 @@ fn run_main() -> i32 {
                             let _ = write_stderr(
                                 b"Assessment saved, but its summary could not be written.\n",
                             );
+                            return 1;
+                        }
+                    }
+                    0
+                }
+                Err(error) => {
+                    if emit_error(&terminal, &error) {
+                        error.exit
+                    } else {
+                        1
+                    }
+                }
+            }
+        }
+        Action::Compose(args) => {
+            match compose::execute(args, &terminal, &checkout_root(), &cancelled) {
+                Ok(completed) => {
+                    if globals.quiet && !globals.json {
+                        return 0;
+                    }
+                    let sources = completed
+                        .blueprint
+                        .get("sources")
+                        .and_then(Value::as_array)
+                        .map_or(0, Vec::len);
+                    let scenarios = completed
+                        .blueprint
+                        .get("scenarios")
+                        .and_then(Value::as_array)
+                        .map_or(0, Vec::len);
+                    let blockers = completed
+                        .blueprint
+                        .get("scenarios")
+                        .and_then(Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .filter_map(|scenario| scenario.get("blockers").and_then(Value::as_array))
+                        .map(Vec::len)
+                        .sum::<usize>();
+                    if globals.json {
+                        let value = serde_json::json!({"schemaVersion":1,"kind":"rhubase-composition-summary","command":"compose","status":"draft-blueprint-saved","reportPath":completed.path,"counts":{"sources":sources,"scenarios":scenarios,"blockers":blockers},"inputsChanged":false});
+                        if terminal.write_json(&value).is_err() {
+                            return 1;
+                        }
+                    } else {
+                        let text = format!(
+                            "Draft composition blueprint saved\n  Sources     {sources}\n  Scenarios   {scenarios}\n  Blockers    {blockers}\n  Directory   {}\n\nRead-only: no source files were changed and no target was generated.\n",
+                            completed.path.display()
+                        );
+                        if terminal.write_text(&text).is_err() {
                             return 1;
                         }
                     }

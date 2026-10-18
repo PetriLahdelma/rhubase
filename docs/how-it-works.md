@@ -1,6 +1,6 @@
 # How RhuBase works
 
-RhuBase uses a Rust coordinator around local Node/TypeScript analysis. The current product surface has two read-only commands: `assess` and `infer`.
+RhuBase uses a Rust coordinator around local Node/TypeScript analysis. Its read-only commands are `assess`, `infer` and the experimental `compose` workflow.
 
 [![Six stages from selecting source systems to a draft assessment and human review.](assets/rhubase-process-overview.svg)](assets/rhubase-process.svg)
 
@@ -16,6 +16,16 @@ This is the user's review journey, not the internal execution order. The shared 
 6. **Group decisions.** Usage groups retain source package, public export, present props, selected discriminator literals, dynamic prop names, and spread state. Arbitrary button labels do not create separate decisions.
 7. **Validate independently.** Rust checks repository and package identity, evidence hashes and ranges, group/usage reconciliation, routes, target candidates, decision states, and verification metadata.
 8. **Publish atomically.** The validated JSON, locally rendered Markdown, pairwise contracts, and manifest are written to a new external directory. Existing outputs are never overwritten.
+
+## Wrapper investigations
+
+Assessment reports group supported wrapper relationships into investigation packets. Each packet links one source-qualified wrapper definition to its unresolved call sites. It records definition and import evidence alongside a content revision. Both systems can expose `Button` without their wrappers being merged.
+
+The initial profile covers top-level exported `const` arrow wrappers that directly return one JSX element imported by name from a selected package’s root entrypoint. Call sites can use a same-file reference, a named relative import or one named relative re-export barrel. Ambiguity, mutable bindings, shadowing, cycles, factories and unsupported function shapes prevent grouping. The original warnings remain in the report. Source subpaths, default imports and namespaces are outside this initial packet profile.
+
+Packet IDs identify the wrapper. Packet revisions track its source digest, definition evidence, binding evidence and linked call sites. Changing a wrapper can require reinspection even when all call-site warning IDs stay the same. Revision equality is not approval or proof of unchanged runtime behavior. Candidate ownership is available through the inner usage's existing mapping group.
+
+Read each packet as an investigation task: inspect effective props and preserve accessibility, provider and behavior obligations. The tool does not infer these obligations from a wrapper's name or execute the component. See [the packet contract](wrapper-investigations-spec.md).
 
 ## Inference flow
 

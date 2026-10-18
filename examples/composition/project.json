@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "kind": "rhubase-composition-project",
+  "title": "Dialog foundation options",
+  "sources": [
+    {
+      "id": "a",
+      "digest": null,
+      "declaredModes": []
+    },
+    {
+      "id": "b",
+      "digest": null,
+      "declaredModes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "c",
+      "digest": null,
+      "declaredModes": []
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "abc",
+      "title": "A + B + C with the required Portal",
+      "includedSources": [
+        "a",
+        "b",
+        "c"
+      ],
+      "target": {
+        "name": "@rhubase-example/foundation",
+        "mode": "new",
+        "baseSource": null
+      },
+      "selections": [
+        {
+          "id": "abc-dialog",
+          "source": "a",
+          "kind": "component",
+          "name": "Dialog",
+          "targetName": "Dialog",
+          "disposition": "retain",
+          "rationale": "Retain the reviewed Dialog API as a foundation candidate."
+        },
+        {
+          "id": "abc-brand",
+          "source": "b",
+          "kind": "token",
+          "name": "color.brand",
+          "targetName": "color.brand",
+          "disposition": "retain",
+          "rationale": "Retain the source token required to close the selected action-token alias."
+        },
+        {
+          "id": "abc-action",
+          "source": "b",
+          "kind": "token",
+          "name": "color.action",
+          "targetName": "color.action",
+          "disposition": "retain",
+          "rationale": "Retain the action token and its explicit same-source alias relationship."
+        },
+        {
+          "id": "abc-dark",
+          "source": "b",
+          "kind": "mode",
+          "name": "dark",
+          "targetName": "dark",
+          "disposition": "retain",
+          "rationale": "Keep the human-declared dark-mode requirement for review; runtime support is not verified."
+        },
+        {
+          "id": "abc-portal",
+          "source": "c",
+          "kind": "component",
+          "name": "Portal",
+          "targetName": "Portal",
+          "disposition": "retain",
+          "rationale": "Retain the explicitly reviewed primitive required by Dialog."
+        }
+      ],
+      "dependencies": [
+        {
+          "from": "abc-dialog",
+          "to": "abc-portal",
+          "rationale": "The retained Dialog requires source C's Portal primitive."
+        }
+      ],
+      "architecture": {
+        "layout": "by-kind",
+        "topology": "workspace",
+        "delivery": "preserve",
+        "deliverySource": "c"
+      }
+    },
+    {
+      "id": "ab",
+      "title": "A + B without source C",
+      "includedSources": [
+        "a",
+        "b"
+      ],
+      "target": {
+        "name": "@rhubase-example/foundation",
+        "mode": "new",
+        "baseSource": null
+      },
+      "selections": [
+        {
+          "id": "ab-dialog",
+          "source": "a",
+          "kind": "component",
+          "name": "Dialog",
+          "targetName": "Dialog",
+          "disposition": "retain",
+          "rationale": "Retain Dialog so the review exposes what excluding source C would leave unresolved."
+        },
+        {
+          "id": "ab-brand",
+          "source": "b",
+          "kind": "token",
+          "name": "color.brand",
+          "targetName": "color.brand",
+          "disposition": "retain",
+          "rationale": "Retain the source token required to close the selected action-token alias."
+        },
+        {
+          "id": "ab-action",
+          "source": "b",
+          "kind": "token",
+          "name": "color.action",
+          "targetName": "color.action",
+          "disposition": "retain",
+          "rationale": "Retain the action token and its explicit same-source alias relationship."
+        },
+        {
+          "id": "ab-dark",
+          "source": "b",
+          "kind": "mode",
+          "name": "dark",
+          "targetName": "dark",
+          "disposition": "retain",
+          "rationale": "Keep the human-declared dark-mode requirement for review; runtime support is not verified."
+        }
+      ],
+      "dependencies": [
+        {
+          "from": "ab-dialog",
+          "to": "ab-portal",
+          "rationale": "Dialog still requires Portal, but the AB scenario intentionally omits source C and does not add it automatically."
+        }
+      ],
+      "architecture": {
+        "layout": "colocated",
+        "topology": "single-package",
+        "delivery": "minimal",
+        "deliverySource": null
+      }
+    }
+  ]
+}

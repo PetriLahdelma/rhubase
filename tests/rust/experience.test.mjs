@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const packageVersion = JSON.parse(readFileSync(path.join(repository, 'package.json'), 'utf8')).version;
 const manifest = path.join(repository, 'Cargo.toml');
 const compiler = process.env.SHIFT_TYPESCRIPT_PATH;
 const hangWorker = path.join(repository, 'tests/rust/workers/hang-with-child.mjs');
@@ -101,7 +102,7 @@ test('infer help groups options and version exits zero without path validation',
     const ttyHelp = stripAnsi(runPty(['infer', '--help'], { width }).text);
     assert.match(ttyHelp, /parent\s+(?:directory\s+)?must\s+(?:already\s+)?exist/i);
   }
-  const version = run(['--version'], { unsetEnv: ['SHIFT_TYPESCRIPT_PATH'] }); assert.equal(version.status, 0); assert.match(version.stdout, /^ctrl-shift 0\.1\.0\n$/);
+  const version = run(['--version'], { unsetEnv: ['SHIFT_TYPESCRIPT_PATH'] }); assert.equal(version.status, 0); assert.equal(version.stdout, `ctrl-shift ${packageVersion}\n`);
 });
 
 test('non-TTY auto output is plain, banner-free, and stage-free', async () => {
@@ -183,7 +184,7 @@ test('JSON success is one ANSI-free object and counts/path equal the artifact', 
 test('JSON error, help and version each use one stdout object with empty stderr', () => {
   const error = run(['--json', 'infer', '--from', from], { unsetEnv: ['SHIFT_TYPESCRIPT_PATH'] }); assert.equal(error.status, 2); const errorValue = assertOneJson(error, 'ctrl-shift-error'); assert.equal(errorValue.exitCode, 2); assert.ok(errorValue.error.code); assert.ok(errorValue.error.message);
   const help = run(['infer', '--json', '--help']); assert.equal(help.status, 0); const helpValue = assertOneJson(help, 'ctrl-shift-help'); assert.equal(helpValue.command, 'infer'); assert.match(helpValue.text, /Inputs/);
-  const version = run(['--json', '--version']); assert.equal(version.status, 0); const versionValue = assertOneJson(version, 'ctrl-shift-version'); assert.equal(versionValue.version, '0.1.0');
+  const version = run(['--json', '--version']); assert.equal(version.status, 0); const versionValue = assertOneJson(version, 'ctrl-shift-version'); assert.equal(versionValue.version, packageVersion);
   const parseAfter = run(['infer', '--form', from, '--json']); assert.equal(parseAfter.status, 2); assertOneJson(parseAfter, 'ctrl-shift-error');
 });
 

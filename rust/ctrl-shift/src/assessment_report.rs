@@ -217,11 +217,12 @@ pub fn render_markdown(assessment: &Value) -> Result<String> {
         "coverage",
     )?;
     let groups = array(root, "mappingGroups", "assessment")?;
+    let wrappers = array(root, "wrapperInvestigations", "assessment")?;
     let decisions = array(root, "decisionsRequired", "assessment")?;
     let checks = array(root, "verificationCandidates", "assessment")?;
     let limitations = array(root, "limitations", "assessment")?;
 
-    let mut output = String::from("# Ctrl + Shift migration assessment\n\n");
+    let mut output = String::from("# RhuBase migration assessment\n\n");
     output.push_str("> **Draft for review.** This report is read-only and does not authorize or execute migration changes.\n\n");
     let repository_name = repository
         .get("name")
@@ -251,7 +252,13 @@ pub fn render_markdown(assessment: &Value) -> Result<String> {
     }
 
     output.push_str("\n## Scope\n\n");
-    output.push_str(&format!("- {} consumer source files scanned\n- {} selected-system JSX usages recognized\n- {} usage patterns\n- {} decisions requiring review\n- {} coverage gaps and unsupported references\n", number(inventory, "filesScanned"), usages.len(), groups.len(), decisions.len(), unsupported.len()));
+    let wrapper_calls = wrappers
+        .iter()
+        .filter_map(Value::as_object)
+        .filter_map(|packet| packet.get("unknownIds").and_then(Value::as_array))
+        .map(Vec::len)
+        .sum::<usize>();
+    output.push_str(&format!("- {} consumer source files scanned\n- {} selected-system JSX usages recognized\n- {} usage patterns\n- {} wrapper definitions grouped for investigation\n- {} unresolved wrapper call sites linked\n- {} decisions requiring review\n- {} coverage gaps and unsupported references\n", number(inventory, "filesScanned"), usages.len(), groups.len(), wrappers.len(), wrapper_calls, decisions.len(), unsupported.len()));
     output.push_str(&format!(
         "- Coverage status: {}\n",
         inline_code(text(coverage, "status", "coverage")?)
@@ -318,6 +325,117 @@ pub fn render_markdown(assessment: &Value) -> Result<String> {
             inline_code(text(source, "importName", "source")?), inline_code(text(source_identity, "version", "source.identity")?),
             safe_text(text(group, "export", "group")?), number(group, "count"), inline_code(text(group, "route", "group")?),
             candidate_text, condition, location, excerpt));
+    }
+
+    output.push_str("\n## Wrapper investigations\n\nThese packets group supported static relationships for review. They do not infer effective props, accessibility, providers or runtime behavior. Every referenced call site remains an unsupported warning below.\n\n");
+    if wrappers.is_empty() {
+        output.push_str("No supported wrapper relationship was grouped.\n");
+    }
+    for (index, packet) in wrappers.iter().enumerate() {
+        let packet = object(packet, &format!("wrapperInvestigations[{index}]"))?;
+        let source_id = text(packet, "sourceId", "wrapper investigation")?;
+        let source = sources
+            .iter()
+            .filter_map(Value::as_object)
+            .find(|source| source.get("id").and_then(Value::as_str) == Some(source_id))
+            .ok_or_else(|| invalid("wrapper sourceId does not identify a selected source"))?;
+        let source_identity = object(
+            source
+                .get("identity")
+                .ok_or_else(|| invalid("wrapper source.identity is required"))?,
+            "wrapper source.identity",
+        )?;
+        let definition = object(
+            packet
+                .get("definition")
+                .ok_or_else(|| invalid("wrapper definition is required"))?,
+            "wrapper definition",
+        )?;
+        let inner_ids = array(packet, "innerUsageIds", "wrapper investigation")?;
+        let inner_id = inner_ids
+            .first()
+            .and_then(Value::as_str)
+            .ok_or_else(|| invalid("wrapper innerUsageIds must identify one usage"))?;
+        let inner = usages
+            .iter()
+            .filter_map(Value::as_object)
+            .find(|usage| usage.get("id").and_then(Value::as_str) == Some(inner_id))
+            .ok_or_else(|| invalid("wrapper inner usage is unknown"))?;
+        let inner_location = format!(
+            "{}:{}:{}",
+            text(inner, "file", "wrapper inner usage")?,
+            inner
+                .get("line")
+                .and_then(Value::as_u64)
+                .ok_or_else(|| invalid("wrapper inner usage.line is required"))?,
+            inner
+                .get("column")
+                .and_then(Value::as_u64)
+                .ok_or_else(|| invalid("wrapper inner usage.column is required"))?
+        );
+        let owner_group = groups.iter().filter_map(Value::as_object).find(|group| {
+            group
+                .get("usageIds")
+                .and_then(Value::as_array)
+                .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some(inner_id)))
+        });
+        let owners = owner_group
+            .and_then(|group| group.get("candidateOwners"))
+            .and_then(Value::as_array)
+            .map(|owners| {
+                owners
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .map(inline_code)
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        let mut call_sites = array(packet, "unknownIds", "wrapper investigation")?
+            .iter()
+            .map(|unknown_id| {
+                let unknown_id = unknown_id
+                    .as_str()
+                    .ok_or_else(|| invalid("wrapper unknownIds must contain strings"))?;
+                let unknown = unsupported
+                    .iter()
+                    .filter_map(Value::as_object)
+                    .find(|item| item.get("id").and_then(Value::as_str) == Some(unknown_id))
+                    .ok_or_else(|| invalid("wrapper unknown ID is not in unsupported records"))?;
+                Ok((
+                    text(unknown, "file", "wrapper call site")?.to_owned(),
+                    unknown
+                        .get("line")
+                        .and_then(Value::as_u64)
+                        .ok_or_else(|| invalid("wrapper call site.line is required"))?,
+                    unknown
+                        .get("column")
+                        .and_then(Value::as_u64)
+                        .ok_or_else(|| invalid("wrapper call site.column is required"))?,
+                ))
+            })
+            .collect::<Result<Vec<_>>>()?;
+        call_sites.sort();
+        output.push_str(&format!(
+            "- **{}** at {}  \n  Source: {} {} / {}  \n  Revision: {}  \n  Inner usage: {}  \n  Unresolved call sites: {}  \n  Candidate owners: {}  \n  Status: {}\n",
+            inline_code(text(definition, "name", "wrapper definition")?),
+            inline_code(text(definition, "file", "wrapper definition")?),
+            inline_code(text(source, "importName", "wrapper source")?),
+            inline_code(text(source_identity, "version", "wrapper source.identity")?),
+            inline_code(text(packet, "sourceExport", "wrapper investigation")?),
+            inline_code(text(packet, "revision", "wrapper investigation")?),
+            inline_code(&inner_location),
+            call_sites
+                .iter()
+                .map(|(file, line, column)| inline_code(&format!("{file}:{line}:{column}")))
+                .collect::<Vec<_>>()
+                .join(", "),
+            if owners.is_empty() {
+                "unassigned".to_owned()
+            } else {
+                owners.join(", ")
+            },
+            inline_code(text(packet, "status", "wrapper investigation")?)
+        ));
     }
 
     output.push_str("\n## Decisions required\n\n");
@@ -469,6 +587,7 @@ mod tests {
             "target":{"id":"target:1","resolution":"workspace","identity":{"name":"@new/ui","version":"2.0.0"}},
             "sources":[{"id":"source:1","importName":"@old/ui","resolution":"workspace","identity":{"name":"@old/ui","version":"1.0.0"},"contractFile":"contracts/source:1.json"}],
             "usageInventory":{"filesScanned":1,"usages":[{"id":"usage:1","file":"src/a [x].tsx","line":3,"column":2}],"unsupported":[],"coverage":{"status":"scoped"}},
+            "wrapperInvestigations":[],
             "mappingGroups":[{"id":"group:1","sourceId":"source:1","export":"Button","condition":{"literalProps":[{"name":"variant","value":"danger<script>"}],"presentProps":["variant","label"],"hasSpread":true,"dynamicProps":["label"]},"usageIds":["usage:1"],"count":1,"route":"decision-required","reviewRequired":true,"target":null,"candidateTargets":[],"contractChangeIds":[],"proposalIds":[],"candidateOwners":[],"evidence":[{"quote":"<Button variant=\"danger\" {...props} /> <script>"}],"representative":{"file":"src/a [x].tsx","line":3,"column":2}}],
             "decisionsRequired":[{"id":"decision:1","groupId":"group:1","kind":"choose-target","reason":"Review <behavior> and `untrusted` prose","usageIds":["usage:1"],"candidateOwners":[],"ownerStatus":"unassigned","status":"needs-review","preconditions":[],"requiredChecks":[]}],
             "verificationCandidates":[
@@ -522,6 +641,38 @@ mod tests {
                 .to_string()
                 .contains("draft, non-executable")
         );
+    }
+
+    #[test]
+    fn report_lists_wrapper_definition_inner_usage_calls_and_existing_owners() {
+        let mut value = assessment();
+        value["mappingGroups"][0]["candidateOwners"] = json!(["@design-system"]);
+        value["usageInventory"]["unsupported"] = json!([
+            {"id":"unknown:1","kind":"wrapper-usage","file":"src/App.tsx","line":8,"column":4,"reason":"review","evidence":[]},
+            {"id":"unknown:2","kind":"local-reexport-resolution","file":"src/Other.tsx","line":9,"column":5,"reason":"review","evidence":[]}
+        ]);
+        value["wrapperInvestigations"] = json!([{
+            "id":"wrapper:0123456789abcdef0123",
+            "revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "sourceId":"source:1",
+            "sourceExport":"Button",
+            "definition":{"file":"src/Button.tsx","name":"Button","evidence":[]},
+            "innerUsageIds":["usage:1"],
+            "unknownIds":["unknown:1","unknown:2"],
+            "bindingEvidence":[],
+            "status":"needs-review",
+            "executable":false
+        }]);
+        let report = render_markdown(&value).unwrap();
+        assert!(report.contains("1 wrapper definitions grouped for investigation"));
+        assert!(report.contains("2 unresolved wrapper call sites linked"));
+        assert!(report.contains("src/App.tsx:8:4"));
+        assert!(report.contains("src/Other.tsx:9:5"));
+        assert!(report.contains("src/a [x].tsx:3:2"));
+        assert!(report.contains("@design-system"));
+        assert!(report.contains("effective props, accessibility, providers or runtime behavior"));
+        assert!(report.contains("## Gaps and unknowns"));
+        assert!(report.contains("wrapper-usage"));
     }
 
     #[test]

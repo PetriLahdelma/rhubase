@@ -110,6 +110,7 @@ pub fn execute(
         "consumer-assessment.mjs",
         "consumer-discovery.mjs",
         "consumer-usages.mjs",
+        "wrapper-investigations.mjs",
         "inference.mjs",
         "snapshot-api.mjs",
         "source-analysis.mjs",

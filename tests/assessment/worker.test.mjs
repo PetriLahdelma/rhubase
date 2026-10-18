@@ -49,7 +49,7 @@ test('two-source workspace assessment discovers exact qualified usages and expli
   const completed = assess(fixture.root, resolution); assert.equal(completed.process.status, 0, completed.process.stderr); assert.equal(completed.envelope.ok, true);
   const result = completed.envelope.result; assert.equal(result.kind, 'assessment-result'); assert.equal(result.resolutionDigest, resolution.digest); assert.equal(result.contracts.length, 2);
   const assessment = result.assessment;
-  assert.deepEqual(Object.keys(assessment).sort(), ['decisionsRequired', 'executable', 'kind', 'limitations', 'mappingGroups', 'repository', 'schemaVersion', 'sources', 'status', 'target', 'usageInventory', 'verificationCandidates'].sort());
+  assert.deepEqual(Object.keys(assessment).sort(), ['decisionsRequired', 'executable', 'kind', 'limitations', 'mappingGroups', 'repository', 'schemaVersion', 'sources', 'status', 'target', 'usageInventory', 'verificationCandidates', 'wrapperInvestigations'].sort());
   assert.equal(assessment.schemaVersion, 1); assert.equal(assessment.kind, 'consumer-migration-assessment'); assert.equal(assessment.status, 'draft-review'); assert.equal(assessment.executable, false);
   assert.equal(JSON.stringify(assessment).includes(fixture.root), false); assert.equal(JSON.stringify(assessment).includes(sentinelText), false);
   assert.deepEqual(assessment.sources.map((item) => item.importName).sort(), fixture.expected.selectedSources);

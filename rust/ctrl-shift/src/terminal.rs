@@ -24,6 +24,10 @@ const KNOWN: &[&str] = &[
     "--json",
     "--help",
     "--version",
+    "--project",
+    "--init",
+    "--source",
+    "--target",
 ];
 
 #[derive(Clone, Copy)]
@@ -179,16 +183,18 @@ impl Terminal {
                 ));
             }
         }
-        if command == Some("assess") {
+        if command == Some("compose") {
+            result.push_str("Compose local design-system packages into a draft review blueprint.\nNo source files are changed and no target is generated.\n\nUsage\n  ctrl-shift compose --project PROJECT.json --source ID=DIR --source ID=DIR --out DIR [options]\n  ctrl-shift compose --init --target PACKAGE --source ID=DIR --source ID=DIR --out DIR [options]\n\nInputs\n  --project FILE          closed composition project JSON (maximum 1 MiB)\n  --init                  start a minimal editable baseline project\n  --target PACKAGE        new target package name; requires --init\n  --source ID=DIR         explicit local source binding; repeat 2 to 8 times\n  --compiler FILE         override auto-discovered pinned TypeScript 5.9.3\n\nRuntime\n  --node FILE             trusted Node 22+ executable\n  --timeout-ms N          deadline; default 30000\n  --max-output-bytes N    lower response cap; maximum 33554432\n\nOutput\n  --out DIR               new external blueprint directory; never overwritten\n  --quiet, -q             suppress successful human output\n  --json                  one machine summary on stdout\n  --color MODE            auto, always, or never\n\nUse either --project or --init. Experimental read-only profile; checks remain unverified.\n");
+        } else if command == Some("assess") {
             result.push_str("Inventory one consumer against selected source systems and one target.\nWrite a draft review directory; run no repository scripts.\n\nUsage\n  ctrl-shift assess [REPO] --source PACKAGE [--source PACKAGE] --target PACKAGE --out DIR [options]\n\nInputs\n  REPO                    consumer repository; default current directory\n  --source PACKAGE        source package name or local path; repeatable\n  --target PACKAGE        target package name or local path\n                           installed/workspace names or explicit local paths\n                           no registry downloads or version selectors\n  --compiler FILE         override auto-discovered pinned TypeScript 5.9.3\n\nRuntime\n  --node FILE             trusted Node 22+ executable\n  --worker FILE           trusted-operator worker override (not a sandbox)\n  --timeout-ms N          per-phase deadline; default 30000\n  --max-output-bytes N    lower response cap; maximum 33554432\n\nOutput\n  --out DIR               new report directory outside protected inputs\n                           output parent directory must already exist\n                           never overwritten\n  --quiet, -q             suppress successful human output\n  --json                  one machine summary on stdout\n  --color MODE            auto, always, or never\n\nExample\n  ctrl-shift assess . --source @legacy/a --source @legacy/b \\\n    --target @design/target --out ../assessment-report\n\nRead-only draft review only. No application files are changed.\n");
         } else if command == Some("infer") && self.width < 60 {
             result.push_str("Compare two local snapshots and save a draft contract.\nNo application files are changed.\n\nUsage\n  ctrl-shift infer\n    --from DIR\n    --to DIR\n    --out FILE\n    [options]\n\nInputs\n  --from DIR\n    old snapshot\n  --to DIR\n    new snapshot\n  --compiler FILE\n    TypeScript 5.9.3 compiler\n    or set SHIFT_TYPESCRIPT_PATH\n\nRuntime\n  --node FILE\n    trusted Node 22+ executable\n  --worker FILE\n    trusted-operator override; not a sandbox\n  --timeout-ms N\n    default 30000\n  --max-output-bytes N\n    lower cap; maximum 33554432\n\nOutput\n  --out FILE\n    new external path\n    output parent directory must already exist\n    never overwritten\n  --quiet, -q\n    suppress successful human output\n  --json\n    one machine summary\n  --color MODE\n    auto, always, or never\n\nExample\n  Assumes SHIFT_TYPESCRIPT_PATH is set.\n  ctrl-shift infer \\\n    --from ./old-ui \\\n    --to ./new-ui \\\n    --out ./contract.json\n\nmacOS/Unix checkout command.\nLinux unvalidated; Windows unsupported.\n");
         } else if command == Some("infer") {
             result.push_str("Compare two local snapshots and save a draft, non-executable contract.\nNo application files are changed.\n\nUsage\n  ctrl-shift infer --from DIR --to DIR --out FILE [options]\n\nInputs\n  --from DIR              old snapshot\n  --to DIR                new snapshot\n  --compiler FILE         TypeScript 5.9.3 compiler\n                           or set SHIFT_TYPESCRIPT_PATH\n\nRuntime\n  --node FILE             trusted Node 22+ executable\n  --worker FILE           trusted-operator worker override (not a sandbox)\n  --timeout-ms N          deadline; default 30000\n  --max-output-bytes N    lower stdout cap; maximum 33554432\n\nOutput\n  --out FILE              new path outside both snapshots\n                           output parent directory must already exist\n                           never overwritten\n  --quiet, -q             suppress successful human output\n  --json                  one machine summary on stdout\n  --color MODE            auto, always, or never\n\nExample\n  SHIFT_TYPESCRIPT_PATH=/absolute/path/to/typescript/lib/typescript.js \\\n    ctrl-shift infer --from ./old-ui --to ./new-ui --out ./contract.json\n\nmacOS/Unix source-checkout command. Linux unvalidated; Windows unsupported.\n");
         } else if self.width < 60 {
-            result.push_str("Compare design systems and prepare\nread-only draft review artifacts.\nNo application files are changed.\n\nCommands\n  ctrl-shift infer\n    compare two package snapshots\n  ctrl-shift assess\n    inventory one consumer repository\n\nRun `ctrl-shift infer --help` or\n`ctrl-shift assess --help`.\n");
+            result.push_str("Compare design systems and prepare\nread-only draft review artifacts.\nNo application files are changed.\n\nCommands\n  ctrl-shift infer\n    compare two package snapshots\n  ctrl-shift assess\n    inventory one consumer repository\n  ctrl-shift compose\n    prepare a source-only blueprint\n\nCommand help\n  ctrl-shift infer --help\n  ctrl-shift assess --help\n  ctrl-shift compose --help\n");
         } else {
-            result.push_str("Compare design systems and prepare read-only draft review artifacts.\nNo application files are changed.\n\nCommands\n  ctrl-shift infer    compare two package snapshots\n  ctrl-shift assess   inventory one consumer repository\n\nRun `ctrl-shift infer --help` or `ctrl-shift assess --help`.\n");
+            result.push_str("Compare design systems and prepare read-only draft review artifacts.\nNo application files are changed.\n\nCommands\n  ctrl-shift infer    compare two package snapshots\n  ctrl-shift assess   inventory one consumer repository\n  ctrl-shift compose  prepare a source-only composition blueprint\n\nCommand help\n  ctrl-shift infer --help\n  ctrl-shift assess --help\n  ctrl-shift compose --help\n");
         }
         for heading in [
             "Usage",
@@ -213,6 +219,10 @@ impl Terminal {
             result = result.replace(
                 "ctrl-shift assess",
                 &self.style(Stream::Out, Tone::Accent, "ctrl-shift assess"),
+            );
+            result = result.replace(
+                "ctrl-shift compose",
+                &self.style(Stream::Out, Tone::Accent, "ctrl-shift compose"),
             );
             result = result.replace("ctrl-shift", "rhubase");
         }
@@ -563,6 +573,11 @@ pub fn hint(error: &AppError) -> Option<String> {
         Some("Check the repository package.json and each `--source`/`--target` selector. Use installed or workspace package names, or explicit local paths; registry downloads and version selectors are unsupported.".into())
     } else if error.message.contains("compiler") || error.message.contains("--compiler") {
         Some("Pass `--compiler FILE` or set `SHIFT_TYPESCRIPT_PATH`.\nRun `ctrl-shift infer --help` for an example.".into())
+    } else if error.message.contains("`--init`") || error.message.starts_with("compose ") {
+        Some(
+            "Run `ctrl-shift compose --help` for the supported project and initialization forms."
+                .into(),
+        )
     } else if error.message.contains("missing required option") {
         Some("Run `ctrl-shift infer --help` for the shortest valid command.".into())
     } else if error.message.contains("output already exists") {

@@ -34,10 +34,11 @@ test('package lock preserves the public package identity and pinned compiler', a
 
 test('public verification scripts exclude legacy Docker, browser, workflow and agent execution', async () => {
   const manifest = await json('package.json');
-  assert.deepEqual(Object.keys(manifest.scripts).sort(), ['check', 'example:assess', 'test', 'test:cli', 'verify']);
+  assert.deepEqual(Object.keys(manifest.scripts).sort(), ['check', 'example:assess', 'example:compose', 'test', 'test:cli', 'verify']);
   assert.equal(manifest.scripts.verify, 'node scripts/verify.mjs');
   assert.equal(manifest.scripts['test:cli'], 'node scripts/test-cli.mjs');
   assert.equal(manifest.scripts['example:assess'], 'node scripts/example-assess.mjs');
+  assert.equal(manifest.scripts['example:compose'], 'node scripts/example-compose.mjs');
   const source = await read('scripts/verify.mjs');
   assert.doesNotMatch(source, /test-all|tests\/(?:docker|browser|workflow)|workflow-agent|demo:agent|claude/i);
 });
@@ -72,7 +73,7 @@ test('GitHub verification uses pinned actions, read-only credentials and public 
   assert.match(workflow, /permissions:\s*\n\s*contents: read/);
   assert.match(workflow, /persist-credentials: false/);
   assert.match(workflow, /npm ci --ignore-scripts/);
-  for (const command of ['npm run verify', 'npm run test:cli', 'npm run example:assess']) assert.match(workflow, new RegExp(command.replaceAll(' ', '\\s+')));
+  for (const command of ['npm run verify', 'npm run test:cli', 'npm run example:assess', 'npm run example:compose']) assert.match(workflow, new RegExp(command.replaceAll(' ', '\\s+')));
   assert.doesNotMatch(workflow, /\$\{\{\s*secrets\.|permissions:\s*write|pull-requests:\s*write/i);
   const actions = [...workflow.matchAll(/uses:\s*([^\s#]+)(?:\s*#.*)?$/gm)].map((match) => match[1]);
   assert.ok(actions.length >= 2);

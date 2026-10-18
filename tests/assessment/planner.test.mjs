@@ -115,6 +115,36 @@ test('dynamic values, spreads, split targets and missing mappings never become a
   assert.equal(JSON.stringify(assessment).includes('/repo'), false, 'portable assessment omits canonical input roots');
 });
 
+test('one documented target remains a candidate while dynamic, undefined, and spread props require a decision', () => {
+  const selected = resolution();
+  const component = { id: 'proposal:component', kind: 'component-rename', source: { export: 'Button' }, target: { export: 'ActionButton' }, basis: 'documentation-explicit', reason: 'documented', status: 'needs-review', executable: false, evidence: [] };
+  const omitted = usage('usage:omitted', 'source:one', 'packages/app/src/omitted.tsx', 'Save');
+  omitted.props = [];
+  const literal = usage('usage:literal', 'source:one', 'packages/app/src/literal.tsx', 'Save');
+  const dynamic = usage('usage:dynamic-single', 'source:one', 'packages/app/src/dynamic.tsx', 'Save');
+  dynamic.props = [{ name: 'variant', kind: 'expression', value: 'mode' }];
+  const explicitUndefined = usage('usage:undefined', 'source:one', 'packages/app/src/undefined.tsx', 'Save');
+  explicitUndefined.props = [{ name: 'variant', kind: 'expression', value: 'undefined' }];
+  const spread = usage('usage:spread-single', 'source:one', 'packages/app/src/spread.tsx', 'Save');
+  spread.props = [{ name: '...', kind: 'spread', value: 'props' }]; spread.hasSpread = true;
+  const assessment = composeAssessment({ resolution: selected, contracts: [
+    { sourceId: 'source:one', file: 'contracts/source:one.json', contract: contract(selected.sources[0], [component]) },
+    { sourceId: 'source:two', file: 'contracts/source:two.json', contract: contract(selected.sources[1]) },
+  ], usageInventory: { filesScanned: 5, usages: [omitted, literal, dynamic, explicitUndefined, spread], unsupported: [], coverage: { status: 'scoped', sourceFiles: {}, jsxSites: 5, recognizedUsages: 5, unsupportedCount: 0, limitations: [] } } });
+
+  const byUsage = (id) => assessment.mappingGroups.find((group) => group.usageIds.includes(id));
+  for (const id of ['usage:omitted', 'usage:literal']) {
+    assert.equal(byUsage(id).route, 'mapping-to-review');
+    assert.deepEqual(byUsage(id).target, { export: 'ActionButton' });
+    assert.deepEqual(byUsage(id).candidateTargets, [{ export: 'ActionButton' }]);
+  }
+  for (const id of ['usage:dynamic-single', 'usage:undefined', 'usage:spread-single']) {
+    assert.equal(byUsage(id).route, 'decision-required');
+    assert.equal(byUsage(id).target, null);
+    assert.deepEqual(byUsage(id).candidateTargets, [{ export: 'ActionButton' }]);
+  }
+});
+
 test('conflicting targets for the same source predicate require a decision even within one target component', () => {
   const selected = resolution();
   const source = { export: 'Button', prop: 'variant', value: 'content' };

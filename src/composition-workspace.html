@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'nonce-rhubase-workspace'; script-src 'nonce-rhubase-workspace'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; form-action 'none'; base-uri 'none'; navigate-to 'none'">
+  <title>RhuBase composition workspace</title>
+  <style nonce="rhubase-workspace">__WORKSPACE_CSS__</style>
+</head>
+<body>
+  <script type="application/json" id="rhubase-project" nonce="rhubase-workspace">__PROJECT_JSON__</script>
+  <script type="application/json" id="rhubase-blueprint" nonce="rhubase-workspace">__BLUEPRINT_JSON__</script>
+  <header class="masthead">
+    <a class="brand" href="#workspace" aria-label="RhuBase composition workspace">__RHUBASE_LOGO__</a>
+    <div class="status-cluster"><span id="workspace-status" class="status">CLI-validated snapshot</span><button id="undo" type="button" class="quiet">Undo</button><button id="redo" type="button" class="quiet">Redo</button></div>
+  </header>
+  <main id="workspace">
+    <section class="intro" aria-labelledby="workspace-title">
+      <div><p class="kicker">Manual composition workspace</p><h1 id="workspace-title">Shape one foundation from known parts.</h1><p>Explore source-qualified capabilities, record deliberate choices, and download a draft for authoritative CLI validation. Nothing here approves, generates, or changes application code.</p></div>
+      <div class="file-actions"><label class="file-button">Open project<input id="import" type="file" accept="application/json,.json"></label><button id="export" type="button" class="primary">Download project</button></div>
+    </section>
+    <p id="validation-note" class="validation-note" hidden><strong>Needs CLI validation.</strong> Counts and findings from the inspected snapshot are intentionally hidden after edits. Re-run <code>rhubase compose</code> with the downloaded project and the original sources.</p>
+    <p id="message" class="message" role="alert" aria-live="polite"></p>
+    <nav class="scenario-strip" aria-label="Composition scenarios"><div id="scenario-tabs" class="scenario-tabs"></div><div class="branch-controls"><input id="branch-id" aria-label="New scenario ID" placeholder="scenario-id"><input id="branch-title" aria-label="New scenario title" placeholder="Scenario title"><button id="branch" type="button">Branch current</button></div></nav>
+    <div class="workspace-grid">
+      <aside class="source-panel" aria-labelledby="sources-title">
+        <header><p class="kicker">Evidence catalog</p><h2 id="sources-title">Sources</h2></header>
+        <ul id="source-list" class="source-list"></ul>
+        <label class="filter">Filter capabilities<input id="catalog-filter" type="search" placeholder="Source, kind, or name"></label>
+        <ul id="catalog-list" class="catalog-list"></ul>
+      </aside>
+      <section class="plan-panel" aria-labelledby="plan-title">
+        <div class="plan-heading"><div><p class="kicker">Planning choices</p><h2 id="plan-title">Foundation draft</h2></div><p id="consequences" class="consequences" hidden></p></div>
+        <fieldset><legend>Target</legend><div class="field-grid"><label>Package name<input id="target-name"></label><label>Mode<select id="target-mode"><option value="new">New foundation</option><option value="evolve">Evolve a source</option></select></label><label>Base source<select id="base-source"></select></label></div></fieldset>
+        <fieldset><legend>Architecture proposal</legend><div class="field-grid"><label>Layout<select id="architecture-layout"><option value="colocated">Colocated</option><option value="by-kind">By kind</option></select></label><label>Topology<select id="architecture-topology"><option value="single-package">Single package</option><option value="workspace">Workspace</option></select></label><label>Delivery<select id="architecture-delivery"><option value="minimal">Minimal</option><option value="preserve">Preserve a source</option></select></label><label>Delivery source<select id="delivery-source"></select></label></div></fieldset>
+        <section aria-labelledby="inspection-title"><div class="section-heading"><h3 id="inspection-title">Inspected snapshot</h3><p>Evidence stays separate from editable choices.</p></div><div id="snapshot-insights" class="snapshot-insights"></div></section>
+        <section aria-labelledby="contributions-title"><div class="section-heading"><h3 id="contributions-title">Contributions</h3><p>Every choice keeps its source identity.</p></div><ul id="selection-list" class="selection-list"></ul></section>
+        <section aria-labelledby="dependencies-title"><div class="section-heading"><h3 id="dependencies-title">Dependencies</h3><p>Missing targets stay visible as unresolved prerequisites.</p></div><div class="dependency-form"><label>From<input id="dependency-from" placeholder="selection-id"></label><label>To<input id="dependency-to" placeholder="selection-id"></label><label>Rationale<input id="dependency-rationale" placeholder="Why this relationship matters"></label><button id="add-dependency" type="button">Add dependency</button></div><ul id="dependency-list" class="dependency-list"></ul></section>
+        <section aria-labelledby="comparisons-title"><div class="section-heading"><h3 id="comparisons-title">Scenario comparisons</h3><p>Reviewed planning differences, never measured compatibility.</p></div><ul id="comparison-list" class="comparison-list"></ul></section>
+      </section>
+    </div>
+  </main>
+  <footer><strong>Many systems. One foundation.</strong><span>Local, read-only planning. Human review required.</span></footer>
+  <script type="module" nonce="rhubase-workspace">__WORKSPACE_JS__</script>
+</body>
+</html>

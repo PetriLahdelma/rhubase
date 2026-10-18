@@ -12,19 +12,22 @@
 
 [Get started](docs/getting-started.md) · [Use cases](docs/use-cases.md) · [Contribute](CONTRIBUTING.md) · [Discussions](https://github.com/PetriLahdelma/rhubase/discussions)
 
-RhuBase is an open-source, local-first tool for understanding design-system migrations and consolidations. It inventories supported component usage in a consumer repository, compares explicitly selected source systems with one target, and produces a reviewable decision report.
+RhuBase is an open-source, local-first tool for understanding design-system consolidations and migrations. It can inventory supported component usage against a selected target, and its experimental composition preview can compare manual options for a new shared foundation before a consumer or target exists.
 
 RhuBase is an alpha. Its supported workflows are read-only: it does not edit applications, run repository scripts, call an AI service, fetch packages from a registry, or open pull requests. Migration execution is not ready. Two independent inference holdouts missed their frozen thresholds; the known failures are regression-tested, but reliability on new systems remains unproven.
 
 ## What works today
 
 - **Consumer assessment:** inspect one local React/TypeScript consumer, one or more explicitly selected source packages, and one target package.
+- **Experimental composition preview:** bind two to eight local source packages and compare manual shared-foundation scenarios without creating a target or changing a source.
+- **Offline composition workspace:** start from source packages, browse their capabilities, edit and branch manual scenarios, and download projects for CLI validation.
 - **Many-to-one consolidation view:** group supported usages by migration-relevant conditions while preserving source-system identity.
+- **Wrapper investigation packets:** link supported wrapper definitions to unresolved call sites with evidence and a revision that changes when their inputs change. Original warnings remain visible.
 - **Draft contract inference:** compare two immutable local package snapshots, including supported TypeScript exports, props, tokens, and selected migration documentation.
 - **Review artifacts:** write portable JSON, human-readable Markdown, pairwise contracts, evidence, coverage gaps, and an artifact manifest.
 - **Fail-visible analysis:** keep wrappers, dynamic access, spreads, style side effects, unsupported CODEOWNERS patterns, and other blind spots in the report.
 
-Every assessment is `draft-review`, every decision remains `needs-review`, and every artifact is non-executable.
+Every assessment is `draft-review`, every assessment decision remains `needs-review`, and planning exports cannot authorize source changes. The offline workspace runs only RhuBase's bundled editor code.
 
 ## From many systems to a shared review
 
@@ -53,15 +56,43 @@ Requirements:
 - Rust 1.93.0; and
 - network access during the initial dependency download.
 
-After dependencies are present and the binary is built, assessment and inference run locally without an AI service, API key, account, or network connection.
+After dependencies are present and the binary is built, assessment, inference, and the composition preview run locally without an AI service, API key, account, or network connection.
 
-## Try the controlled example
+## Try the controlled examples
 
 ```sh
 npm run example:assess
+npm run example:compose
 ```
 
-The command creates a fresh synthetic two-source consolidation fixture in scratch space and prints the external report path. It is safe to inspect and useful for learning the report format. It is not evidence that RhuBase is reliable on real repositories.
+Each command uses a controlled local fixture, creates a fresh output in scratch space, and prints the report path. The examples are safe to inspect and useful for learning the report formats. They are not evidence that RhuBase is reliable on real repositories.
+
+## Compare composition options
+
+Start without writing a project file:
+
+```sh
+./bin/rhubase compose --init --target @example/foundation \
+  --source a=examples/composition/a \
+  --source b=examples/composition/b \
+  --source c=examples/composition/c \
+  --out ../rhubase-workspace
+```
+
+Open the output's `workspace.html` locally to select contributions and explore alternatives. Download your edited project, then run the CLI again for current findings. No server or account is needed.
+
+Or inspect the prepared comparison:
+
+```sh
+./bin/rhubase compose \
+  --project examples/composition/project.json \
+  --source a=examples/composition/a \
+  --source b=examples/composition/b \
+  --source c=examples/composition/c \
+  --out ../rhubase-composition
+```
+
+The project records manual selections, rationale, dependencies, and architecture choices. RhuBase returns a non-executable draft with blockers and checks that remain unrun. It does not recommend or generate a target, and it does not claim component, theme, consumer, or migration compatibility. See [composition preview](docs/composition.md).
 
 ## Assess a local consumer
 
@@ -107,6 +138,7 @@ See [validation status](docs/validation.md) for the failed holdouts, the passing
 - [Getting started](docs/getting-started.md)
 - [Use cases](docs/use-cases.md)
 - [How it works](docs/how-it-works.md)
+- [Composition preview](docs/composition.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Roadmap](docs/roadmap.md)
 - [Documentation index and historical research](docs/README.md)

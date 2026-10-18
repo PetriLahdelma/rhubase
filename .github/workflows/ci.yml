@@ -42,3 +42,5 @@ jobs:
         run: npm run test:cli
       - name: Run the local learning example
         run: npm run example:assess
+      - name: Run the read-only composition example
+        run: npm run example:compose
